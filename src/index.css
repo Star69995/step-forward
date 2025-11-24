@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ✨ הוסף רקע סגול לכל העמוד */
+html,
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  direction: rtl;
+  text-align: right;
+  font-family: "Rubik", sans-serif;
+}
+
+/* מודל כדי שהכל מתחבר */
+#root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* אם יש לך wrapper חיצוני */
+.form-wrapper {
+  background: transparent;
+}
+
+.goal-content.hidden {
+  display: none;
+}
+
+.goal-content.shown {
+  display: block;
+}
+
+/* During PDF export → force all goals open */
+.goal-section.open-for-pdf .goal-content {
+  display: block !important;
+}
+
+/* חדש – הופך את המשולש */
+.goal-section.open-for-pdf .arrow-icon {
+  transform: rotate(90deg) !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
