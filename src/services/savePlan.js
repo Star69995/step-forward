@@ -19,6 +19,6 @@ export const savePlan = async (uid, planData, planId = null) => {
     }
 
     await setDoc(ref, dataToSave, { merge: true });
-    console.log('dataToSave: ', dataToSave);
+    // console.log('dataToSave: ', dataToSave);
     return id;
 };

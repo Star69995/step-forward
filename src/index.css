@@ -1,5 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap");
 
+/* @import "tailwindcss"; */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,7 +12,6 @@
   box-sizing: border-box;
 }
 
-/* ✨ הוסף רקע סגול לכל העמוד */
 html,
 body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,13 +21,11 @@ body {
   font-family: "Rubik", sans-serif;
 }
 
-/* מודל כדי שהכל מתחבר */
 #root {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
-/* אם יש לך wrapper חיצוני */
 .form-wrapper {
   background: transparent;
 }
@@ -39,12 +38,10 @@ body {
   display: block;
 }
 
-/* During PDF export → force all goals open */
 .goal-section.open-for-pdf .goal-content {
   display: block !important;
 }
 
-/* חדש – הופך את המשולש */
 .goal-section.open-for-pdf .arrow-icon {
   transform: rotate(90deg) !important;
 }
@@ -58,5 +55,11 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
   }
 }

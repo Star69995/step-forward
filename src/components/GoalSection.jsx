@@ -18,13 +18,10 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary" }) => {
 
     return (
         <div
-            className="goal-section border-0 shadow-sm mb-3"
+            className="goal-section border-0 rounded-2xl shadow-sm mb-4 overflow-hidden transition"
             style={{
-                borderRadius: "12px",
-                overflow: "hidden",
-                transition: "all 0.3s ease",
-                backgroundColor: "white",
-                borderLeft: `4px solid ${badgeColor2}`
+                borderLeft: `4px solid ${badgeColor2}`,
+                backgroundColor: "white"
             }}
             onMouseEnter={(e) => {
                 if (!open) {
@@ -37,38 +34,24 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary" }) => {
                 }
             }}
         >
-            {/* ===== HEADER with rotating triangle ===== */}
+            {/* HEADER */}
             <div
-                className="p-4"
+                className="p-4 cursor-pointer select-none transition"
                 style={{
-                    cursor: "pointer",
-                    userSelect: "none",
                     backgroundColor: open ? `${badgeColor2}10` : "white",
-                    transition: "all 0.3s ease",
                     borderBottom: open ? `2px solid ${badgeColor2}30` : "none"
                 }}
                 onClick={() => setOpen(!open)}
             >
-                <div
-                    className="d-flex justify-content-between align-items-center"
-                    style={{ gap: "1rem" }}
-                >
-                    <div className="d-flex align-items-center" style={{ gap: "0.75rem", minWidth: 0 }}>
+                <div className="flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                         {/* Arrow Icon */}
                         <div
-                            className="arrow-icon"
+                            className="arrow-icon flex items-center justify-center w-6 h-6 flex-shrink-0 transition"
                             style={{
-                                transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                transform: open ? "rotate(90deg)" : "rotate(0deg)",
-                                fontSize: "1.5rem",
                                 color: badgeColor2,
-                                lineHeight: 1,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "24px",
-                                height: "24px",
-                                flexShrink: 0
+                                transform: open ? "rotate(90deg)" : "rotate(0deg)",
+                                fontSize: "1.5rem"
                             }}
                         >
                             ▶
@@ -76,128 +59,77 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary" }) => {
 
                         {/* Title */}
                         <h5
-                            className="m-0 fw-bold"
-                            style={{
-                                color: badgeColor2,
-                                fontSize: "1.1rem",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap"
-                            }}
+                            className="m-0 font-bold text-lg overflow-hidden text-ellipsis whitespace-nowrap"
+                            style={{ color: badgeColor2 }}
                         >
                             {title || `מטרה לטווח קצר #${index}`}
                         </h5>
                     </div>
 
-                    {/* Badge Counter */}
+                    {/* Badge */}
                     <div
-                        className="badge"
-                        style={{
-                            backgroundColor: badgeColor2,
-                            color: "white",
-                            padding: "0.5rem 0.75rem",
-                            fontSize: "0.85rem",
-                            borderRadius: "20px",
-                            flexShrink: 0,
-                            fontWeight: "600"
-                        }}
+                        className="badge text-white px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+                        style={{ backgroundColor: badgeColor2 }}
                     >
                         #{index}
                     </div>
                 </div>
             </div>
 
-            {/* ===== EXPANDED CONTENT ===== */}
+            {/* EXPANDED CONTENT */}
             <div
-                className={`goal-content ${open ? "shown" : "hidden"}`}
+                className="goal-content overflow-hidden transition-all"
                 style={{
                     maxHeight: open ? "1000px" : "0px",
-                    overflow: "hidden",
-                    transition: "max-height 0.3s ease",
                     opacity: open ? 1 : 0
                 }}
             >
-                <div className="p-4" style={{ backgroundColor: "white" }}>
+                <div className="p-4 bg-white">
                     {/* Description */}
-                    <div className="mb-4">
-                        <label
-                            className="form-label fw-bold mb-2"
-                            style={{
-                                color: "#333",
-                                fontSize: "0.95rem",
-                                letterSpacing: "0.3px"
-                            }}
-                        >
+                    <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                             📝 תיאור המטרה
                         </label>
                         <textarea
                             {...register(`${baseName}.description`)}
                             rows={3}
-                            className="form-control"
                             placeholder="תאר את המטרה שלך בפירוט..."
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-2 focus:outline-none focus:ring-2 focus:bg-white"
                             style={{
-                                borderRadius: "8px",
-                                borderColor: "#e0e0e0",
-                                fontSize: "0.95rem",
+                                borderColor: "rgb(224, 224, 224)",
                                 fontFamily: "Rubik, sans-serif",
-                                transition: "all 0.3s ease",
+                                lineHeight: "1.6",
                                 resize: "vertical"
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = badgeColor2;
                                 e.target.style.boxShadow = `0 0 0 3px ${badgeColor2}20`;
+                                e.target.style.backgroundColor = "white";
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = "#e0e0e0";
+                                e.target.style.borderColor = "rgb(224, 224, 224)";
                                 e.target.style.boxShadow = "none";
+                                e.target.style.backgroundColor = "rgb(250, 250, 250)";
                             }}
-                        ></textarea>
+                        />
                     </div>
 
                     {/* Targets Section */}
                     <div>
                         <label
-                            className="form-label fw-bold mb-3"
-                            style={{
-                                color: "#333",
-                                fontSize: "0.95rem",
-                                letterSpacing: "0.3px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem"
-                            }}
+                            className="block text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                            style={{ letterSpacing: "0.3px" }}
                         >
                             <span
-                                style={{
-                                    width: "4px",
-                                    height: "20px",
-                                    backgroundColor: badgeColor2,
-                                    borderRadius: "2px"
-                                }}
+                                className="w-1 h-5 rounded"
+                                style={{ backgroundColor: badgeColor2 }}
                             ></span>
                             🎯 יעדים ספציפיים
                         </label>
 
-                        <div
-                            style={{
-                                display: "grid",
-                                gap: "1rem",
-                                gridTemplateColumns: "1fr"
-                            }}
-                        >
-                            {/* יעד #1 */}
-                            <Goal
-                                baseName={baseName}
-                                index={1}
-                                color={badgeColor2}
-                            />
-
-                            {/* יעד #2 */}
-                            <Goal
-                                baseName={baseName}
-                                index={2}
-                                color={badgeColor2}
-                            />
+                        <div>
+                            <Goal baseName={baseName} index={1} color={badgeColor2} />
+                            <Goal baseName={baseName} index={2} color={badgeColor2} />
                         </div>
                     </div>
                 </div>

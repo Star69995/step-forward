@@ -74,89 +74,60 @@ const Profile = () => {
     return (
         <div
             dir="rtl"
+            className="min-h-screen py-8"
             style={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                minHeight: "100vh",
-                paddingTop: "2rem",
-                paddingBottom: "2rem"
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
             }}
         >
-            <div className="container" style={{ maxWidth: "900px" }}>
+            <div className="max-w-4xl mx-auto px-4">
                 {/* Header Section */}
                 <div
-                    className="card border-0 shadow-lg mb-4"
+                    className="bg-white rounded-3xl shadow-lg mb-8 p-8"
                     style={{
-                        borderRadius: "16px",
                         background: "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)",
                         backdropFilter: "blur(10px)"
                     }}
                 >
-                    <div style={{ padding: "2rem" }}>
-                        <div
-                            className="d-flex justify-content-between align-items-center mb-3"
-                            style={{ flexWrap: "wrap", gap: "1rem" }}
-                        >
-                            <div>
-                                <h2 className="fw-bold mb-1" style={{ color: "#333", fontSize: "1.8rem" }}>
-                                    👤 שלום, {currentUser?.displayName || currentUser?.email}
-                                </h2>
-                                <small style={{ color: "#999" }}>
-                                    {currentUser?.email}
-                                </small>
-                            </div>
-                            <button
-                                className="btn fw-bold"
-                                onClick={logout}
-                                style={{
-                                    background: "linear-gradient(135deg, #dc3545 0%, #c82333 100%)",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "10px",
-                                    padding: "0.75rem 1.5rem",
-                                    transition: "all 0.3s ease",
-                                    boxShadow: "0 4px 12px rgba(220, 53, 69, 0.3)"
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.transform = "translateY(-2px)";
-                                    e.target.style.boxShadow = "0 6px 20px rgba(220, 53, 69, 0.4)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.transform = "translateY(0)";
-                                    e.target.style.boxShadow = "0 4px 12px rgba(220, 53, 69, 0.3)";
-                                }}
-                            >
-                                🚪 התנתק
-                            </button>
+                    <div className="flex justify-between items-start gap-4 flex-wrap">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800 mb-1">
+                                👤 שלום, {currentUser?.displayName || currentUser?.email}
+                            </h2>
+                            <small className="text-gray-500">
+                                {currentUser?.email}
+                            </small>
                         </div>
+                        <button
+                            className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg font-bold transition flex items-center gap-2 whitespace-nowrap"
+                            onClick={logout}
+                            onMouseEnter={(e) => {
+                                e.target.style.transform = "translateY(-2px)";
+                                e.target.style.boxShadow = "0 6px 20px rgba(220, 53, 69, 0.4)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = "translateY(0)";
+                                e.target.style.boxShadow = "0 4px 12px rgba(220, 53, 69, 0.3)";
+                            }}
+                            style={{
+                                boxShadow: "0 4px 12px rgba(220, 53, 69, 0.3)"
+                            }}
+                        >
+                            <span className="text-lg">🚪</span>
+                            <span>התנתק</span>
+                        </button>
                     </div>
                 </div>
 
                 {/* Plans Section */}
                 <div>
                     {/* Section Header with New Plan Button */}
-                    <div
-                        className="d-flex justify-content-between align-items-center mb-4"
-                        style={{ flexWrap: "wrap", gap: "1rem" }}
-                    >
-                        <h3 className="fw-bold mb-0" style={{ color: "white", fontSize: "1.5rem" }}>
+                    <div className="flex justify-between items-center gap-4 mb-6 flex-wrap">
+                        <h3 className="text-2xl font-bold text-white">
                             📋 התוכניות השמורות שלי
                         </h3>
                         <button
-                            className="btn fw-bold"
+                            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-bold transition flex items-center gap-2 whitespace-nowrap"
                             onClick={handleNewPlan}
-                            style={{
-                                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "10px",
-                                padding: "0.75rem 1.5rem",
-                                transition: "all 0.3s ease",
-                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem",
-                                whiteSpace: "nowrap"
-                            }}
                             onMouseEnter={(e) => {
                                 e.target.style.transform = "translateY(-2px)";
                                 e.target.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.4)";
@@ -165,74 +136,52 @@ const Profile = () => {
                                 e.target.style.transform = "translateY(0)";
                                 e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
                             }}
+                            style={{
+                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
+                            }}
                         >
-                            <span style={{ fontSize: "1.2rem" }}>➕</span>
+                            <span className="text-xl">➕</span>
                             <span>תוכנית חדשה</span>
                         </button>
                     </div>
 
                     {/* Loading State */}
                     {loading ? (
-                        <div
-                            className="card border-0 shadow-sm"
-                            style={{
-                                borderRadius: "12px",
-                                padding: "3rem",
-                                textAlign: "center"
-                            }}
-                        >
-                            <div className="spinner-border text-primary mb-3" role="status">
-                                <span className="visually-hidden">Loading...</span>
+                        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                            <div className="inline-block animate-spin text-4xl mb-4">
+                                ⏳
                             </div>
-                            <p style={{ color: "#666" }}>טוען את התוכניות שלך...</p>
+                            <p className="text-gray-600">טוען את התוכניות שלך...</p>
                         </div>
                     ) : plans.length === 0 ? (
                         /* Empty State */
-                        <div
-                            className="card border-0 shadow-sm"
-                            style={{
-                                borderRadius: "12px",
-                                padding: "3rem",
-                                textAlign: "center",
-                                backgroundColor: "white"
-                            }}
-                        >
-                            <h4 style={{ color: "#999", marginBottom: "1rem" }}>📭 אין עדיין תוכניות</h4>
-                            <p style={{ color: "#bbb", marginBottom: "1.5rem" }}>
+                        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                            <h4 className="text-2xl text-gray-400 mb-3">📭 אין עדיין תוכניות</h4>
+                            <p className="text-gray-500 mb-6">
                                 התחל ליצור את התוכנית הראשונה שלך לקידום המטרות שלך
                             </p>
                             <button
-                                className="btn fw-bold mx-auto"
+                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-bold transition mx-auto flex items-center gap-2"
                                 onClick={handleNewPlan}
-                                style={{
-                                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "10px",
-                                    padding: "0.75rem 1.5rem"
+                                onMouseEnter={(e) => {
+                                    e.target.style.transform = "translateY(-2px)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.transform = "translateY(0)";
                                 }}
                             >
-                                ✨ צור תוכנית עכשיו
+                                <span>✨</span>
+                                <span>צור תוכנית עכשיו</span>
                             </button>
                         </div>
                     ) : (
                         /* Plans Grid */
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                                gap: "1.5rem"
-                            }}
-                        >
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {plans.map((plan) => (
                                 <div
                                     key={plan.id}
-                                    className="card border-0 shadow-sm"
+                                    className="bg-white rounded-2xl shadow-sm overflow-hidden transition"
                                     style={{
-                                        borderRadius: "12px",
-                                        overflow: "hidden",
-                                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                        backgroundColor: "white",
                                         borderLeft: "4px solid #667eea"
                                     }}
                                     onMouseEnter={(e) => {
@@ -245,57 +194,30 @@ const Profile = () => {
                                     }}
                                 >
                                     {/* Card Header */}
-                                    <div
-                                        style={{
-                                            padding: "1.5rem",
-                                            backgroundColor: "#f9f9f9",
-                                            borderBottom: "1px solid #e0e0e0"
-                                        }}
-                                    >
-                                        <h5
-                                            className="fw-bold mb-2"
-                                            style={{
-                                                color: "#333",
-                                                wordBreak: "break-word"
-                                            }}
-                                        >
+                                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                                        <h5 className="font-bold text-gray-800 mb-2 break-words">
                                             📌 {plan.name || "תוכנית ללא שם"}
                                         </h5>
                                         {plan.updatedAt && (
-                                            <small style={{ color: "#999" }}>
+                                            <small className="text-gray-500">
                                                 🕐 עודכן: {plan.updatedAt.toDate().toLocaleString("he-IL")}
                                             </small>
                                         )}
                                     </div>
 
                                     {/* Card Body with Plan Info */}
-                                    <div style={{ padding: "1.5rem" }}>
-                                        <div style={{ marginBottom: "1rem" }}>
-                                            <small style={{ color: "#666" }}>
+                                    <div className="px-6 py-4">
+                                        <div className="mb-4">
+                                            <small className="text-gray-600">
                                                 <strong>ID:</strong> {plan.id.substring(0, 8)}...
                                             </small>
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div
-                                            style={{
-                                                display: "grid",
-                                                gridTemplateColumns: "1fr 1fr",
-                                                gap: "0.75rem"
-                                            }}
-                                        >
+                                        <div className="grid grid-cols-2 gap-3">
                                             <button
-                                                className="btn btn-sm fw-bold"
+                                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg font-bold text-sm transition"
                                                 onClick={() => navigate(`/form?planId=${plan.id}`)}
-                                                style={{
-                                                    background: "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
-                                                    color: "white",
-                                                    border: "none",
-                                                    borderRadius: "8px",
-                                                    padding: "0.6rem",
-                                                    transition: "all 0.3s ease",
-                                                    fontSize: "0.9rem"
-                                                }}
                                                 onMouseEnter={(e) => {
                                                     e.target.style.transform = "scale(1.05)";
                                                 }}
@@ -306,20 +228,9 @@ const Profile = () => {
                                                 ✏️ עריכה
                                             </button>
                                             <button
-                                                className="btn btn-sm fw-bold"
+                                                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg font-bold text-sm transition disabled:opacity-70"
                                                 onClick={() => handleDelete(plan.id, plan.name || "התוכנית")}
                                                 disabled={deleting === plan.id}
-                                                style={{
-                                                    background: "linear-gradient(135deg, #dc3545 0%, #c82333 100%)",
-                                                    color: "white",
-                                                    border: "none",
-                                                    borderRadius: "8px",
-                                                    padding: "0.6rem",
-                                                    transition: "all 0.3s ease",
-                                                    fontSize: "0.9rem",
-                                                    opacity: deleting === plan.id ? 0.7 : 1,
-                                                    cursor: deleting === plan.id ? "not-allowed" : "pointer"
-                                                }}
                                                 onMouseEnter={(e) => {
                                                     if (deleting !== plan.id) {
                                                         e.target.style.transform = "scale(1.05)";
@@ -332,14 +243,10 @@ const Profile = () => {
                                                 }}
                                             >
                                                 {deleting === plan.id ? (
-                                                    <>
-                                                        <span
-                                                            className="spinner-border spinner-border-sm me-2"
-                                                            role="status"
-                                                            style={{ width: "0.85rem", height: "0.85rem" }}
-                                                        ></span>
-                                                        מוחק...
-                                                    </>
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <span className="inline-block animate-spin">⏳</span>
+                                                        <span>מוחק...</span>
+                                                    </div>
                                                 ) : (
                                                     "🗑️ מחיקה"
                                                 )}

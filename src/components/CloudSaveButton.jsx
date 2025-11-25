@@ -37,29 +37,9 @@ const CloudSaveButton = ({ data, planId, setPlanId, isSaving }) => {
 
     return (
         <button
-            className="btn fw-bold"
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-full font-bold transition disabled:opacity-90 flex items-center gap-2 whitespace-nowrap"
             onClick={handleSave}
             disabled={isLoading}
-            style={{
-                background: isLoading
-                    ? "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)"
-                    : "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
-                color: "white",
-                border: "none",
-                borderRadius: "25px",
-                padding: "0.75rem 1.5rem",
-                fontSize: "1rem",
-                fontWeight: "600",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.9 : 1,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                whiteSpace: "nowrap",
-                boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
-                letterSpacing: "0.3px"
-            }}
             onMouseEnter={(e) => {
                 if (!isLoading) {
                     e.target.style.transform = "translateY(-2px)";
@@ -72,24 +52,23 @@ const CloudSaveButton = ({ data, planId, setPlanId, isSaving }) => {
                     e.target.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
                 }
             }}
+            style={{
+                boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)"
+            }}
         >
             {isLoading ? (
                 <>
                     <span
-                        className="spinner-border spinner-border-sm"
-                        role="status"
-                        aria-hidden="true"
-                        style={{
-                            width: "1rem",
-                            height: "1rem",
-                            borderWidth: "2px"
-                        }}
-                    ></span>
+                        className="inline-block animate-spin"
+                        style={{ width: "1rem", height: "1rem" }}
+                    >
+                        ⏳
+                    </span>
                     <span>שומר...</span>
                 </>
             ) : (
                 <>
-                    <span style={{ fontSize: "1.2rem" }}>☁️</span>
+                    <span className="text-lg">☁️</span>
                     <span>שמירה לענן</span>
                 </>
             )}

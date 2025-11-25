@@ -6,76 +6,35 @@ const Goal = ({ baseName, index, color = "#0d6efd" }) => {
 
     return (
         <div
+            className="rounded-lg p-5 mb-4 transition hover:shadow-md border-r-4"
             style={{
                 backgroundColor: `${color}08`,
-                borderRadius: "10px",
-                padding: "1.25rem",
-                borderRight: `3px solid ${color}`,
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                marginBottom: "1rem"
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = `0 4px 12px ${color}20`;
-                e.currentTarget.style.transform = "translateX(-2px)";
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.transform = "translateX(0)";
+                borderRightColor: color
             }}
         >
             {/* Goal Number Badge */}
             <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: color,
-                    color: "white",
-                    borderRadius: "50%",
-                    width: "28px",
-                    height: "28px",
-                    fontWeight: "700",
-                    fontSize: "0.9rem",
-                    marginBottom: "0.75rem"
-                }}
+                className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white font-bold text-sm mb-4"
+                style={{ backgroundColor: color }}
             >
                 {index}
             </div>
 
             {/* Row Container */}
-            <div
-                className="row g-3 align-items-end"
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem"
-                }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Goal Text Input */}
                 <div>
-                    <label
-                        className="form-label fw-semibold mb-2"
-                        style={{
-                            color: "#333",
-                            fontSize: "0.9rem",
-                            letterSpacing: "0.3px"
-                        }}
-                    >
+                    <label className="block text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                         🎯 תיאור היעד
                     </label>
                     <input
                         type="text"
                         {...register(`${baseName}.target${index}.text`)}
-                        className="form-control"
                         placeholder={`תאר את היעד #${index} שלך...`}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white text-gray-800 font-sans transition focus:outline-none focus:border-2"
                         style={{
-                            borderRadius: "8px",
-                            borderColor: "#e0e0e0",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.95rem",
-                            fontFamily: "Rubik, sans-serif",
-                            transition: "all 0.3s ease",
-                            backgroundColor: "white"
+                            borderColor: "rgb(224, 224, 224)",
+                            fontFamily: "Rubik, sans-serif"
                         }}
                         onFocus={(e) => {
                             e.target.style.borderColor = color;
@@ -83,7 +42,7 @@ const Goal = ({ baseName, index, color = "#0d6efd" }) => {
                             e.target.style.backgroundColor = `${color}05`;
                         }}
                         onBlur={(e) => {
-                            e.target.style.borderColor = "#e0e0e0";
+                            e.target.style.borderColor = "rgb(224, 224, 224)";
                             e.target.style.boxShadow = "none";
                             e.target.style.backgroundColor = "white";
                         }}
@@ -92,28 +51,16 @@ const Goal = ({ baseName, index, color = "#0d6efd" }) => {
 
                 {/* End Date Input */}
                 <div>
-                    <label
-                        className="form-label fw-semibold mb-2"
-                        style={{
-                            color: "#333",
-                            fontSize: "0.9rem",
-                            letterSpacing: "0.3px"
-                        }}
-                    >
+                    <label className="block text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                         📅 תאריך סיום
                     </label>
                     <input
                         type="date"
                         {...register(`${baseName}.target${index}.endDate`)}
-                        className="form-control"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white text-gray-800 font-sans transition focus:outline-none focus:border-2"
                         style={{
-                            borderRadius: "8px",
-                            borderColor: "#e0e0e0",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.95rem",
-                            fontFamily: "Rubik, sans-serif",
-                            transition: "all 0.3s ease",
-                            backgroundColor: "white"
+                            borderColor: "rgb(224, 224, 224)",
+                            fontFamily: "Rubik, sans-serif"
                         }}
                         onFocus={(e) => {
                             e.target.style.borderColor = color;
@@ -121,7 +68,7 @@ const Goal = ({ baseName, index, color = "#0d6efd" }) => {
                             e.target.style.backgroundColor = `${color}05`;
                         }}
                         onBlur={(e) => {
-                            e.target.style.borderColor = "#e0e0e0";
+                            e.target.style.borderColor = "rgb(224, 224, 224)";
                             e.target.style.boxShadow = "none";
                             e.target.style.backgroundColor = "white";
                         }}
@@ -130,15 +77,7 @@ const Goal = ({ baseName, index, color = "#0d6efd" }) => {
             </div>
 
             {/* Helper Text */}
-            <small
-                style={{
-                    color: "#666",
-                    marginTop: "0.5rem",
-                    display: "block",
-                    fontSize: "0.8rem",
-                    fontStyle: "italic"
-                }}
-            >
+            <small className="block text-gray-600 mt-3 text-xs italic">
                 💡 הגדר יעד קטן, מדידה, ברור ובעל לוח זמנים
             </small>
         </div>

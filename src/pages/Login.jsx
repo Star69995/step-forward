@@ -69,210 +69,107 @@ const Login = () => {
 
     return (
         <div
-            className="d-flex justify-content-center align-items-center vh-100"
+            className="flex justify-center items-center min-h-screen p-4"
             dir="rtl"
             style={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                padding: "1rem"
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
             }}
         >
             {/* Main Card */}
-            <div
-                className="card border-0 shadow-lg"
-                style={{
-                    maxWidth: "420px",
-                    width: "100%",
-                    borderRadius: "16px",
-                    overflow: "hidden"
-                }}
-            >
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
                 {/* Header */}
                 <div
+                    className="text-white py-8 px-6 text-center"
                     style={{
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                        padding: "2rem 1.5rem",
-                        color: "white",
-                        textAlign: "center"
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                     }}
                 >
-                    <h1 className="fw-bold mb-2" style={{ fontSize: "2rem" }}>
-                        🌟 צעד קדימה
-                    </h1>
-                    <p className="mb-0 opacity-90">
-                        {isSignup ? "יצירת חשבון חדש" : "התחברות למערכת"}
+                    <h1 className="text-4xl font-bold mb-2">🌟 צעד קדימה</h1>
+                    <p className="opacity-90 text-lg">
+                        {isSignup ? "צרו חשבון חדש" : "התחברו למערכת"}
                     </p>
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: "2rem 1.5rem" }}>
+                <div className="p-8">
                     {/* Google Login Button */}
                     <button
-                        className="btn fw-bold w-100 mb-4"
+                        className="w-full bg-white text-gray-800 border-2 border-gray-300 rounded-xl py-3 px-4 font-bold transition mb-4 flex items-center justify-center gap-2"
                         onClick={handleGoogleLogin}
                         disabled={loading}
-                        style={{
-                            background: "white",
-                            color: "#333",
-                            border: "2px solid #e0e0e0",
-                            borderRadius: "10px",
-                            padding: "0.75rem",
-                            fontSize: "1rem",
-                            transition: "all 0.3s ease",
-                            fontWeight: "600"
-                        }}
                         onMouseEnter={(e) => {
                             if (!loading) {
-                                e.target.style.borderColor = "#667eea";
-                                e.target.style.boxShadow = "0 4px 12px rgba(102, 126, 234, 0.2)";
-                                e.target.style.transform = "translateY(-2px)";
+                                e.currentTarget.style.borderColor = "#667eea";
+                                e.currentTarget.style.boxShadow = "0 4px 12px rgba(102, 126, 234, 0.2)";
+                                e.currentTarget.style.transform = "translateY(-2px)";
                             }
                         }}
                         onMouseLeave={(e) => {
                             if (!loading) {
-                                e.target.style.borderColor = "#e0e0e0";
-                                e.target.style.boxShadow = "none";
-                                e.target.style.transform = "translateY(0)";
+                                e.currentTarget.style.borderColor = "#e5e7eb";
+                                e.currentTarget.style.boxShadow = "none";
+                                e.currentTarget.style.transform = "translateY(0)";
                             }
                         }}
                     >
                         {loading ? (
                             <>
-                                <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    style={{ width: "1rem", height: "1rem" }}
-                                ></span>
-                                טוען...
+                                <span className="animate-spin inline-block">⏳</span>
+                                <span>טוען...</span>
                             </>
                         ) : (
                             <>
-                                <span style={{ fontSize: "1.2rem", marginLeft: "0.5rem" }}>🔐</span>
-                                התחברות עם Google
+                                <span className="text-xl">🔐</span>
+                                <span>התחברות עם Google</span>
                             </>
                         )}
                     </button>
 
                     {/* Divider */}
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "1rem",
-                            marginBottom: "1.5rem"
-                        }}
-                    >
-                        <div
-                            style={{
-                                flex: 1,
-                                height: "1px",
-                                backgroundColor: "#e0e0e0"
-                            }}
-                        ></div>
-                        <span style={{ color: "#999", fontSize: "0.9rem" }}>או</span>
-                        <div
-                            style={{
-                                flex: 1,
-                                height: "1px",
-                                backgroundColor: "#e0e0e0"
-                            }}
-                        ></div>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="flex-1 h-px bg-gray-300"></div>
+                        <span className="text-gray-500 text-sm">או</span>
+                        <div className="flex-1 h-px bg-gray-300"></div>
                     </div>
 
                     {/* Email & Password Form */}
                     <form onSubmit={handleFormSubmit}>
                         {/* Email Input */}
-                        <div className="mb-3">
-                            <label
-                                className="form-label fw-semibold mb-2"
-                                style={{
-                                    color: "#333",
-                                    fontSize: "0.95rem",
-                                    letterSpacing: "0.3px"
-                                }}
-                            >
+                        <div className="mb-4">
+                            <label className="block text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                                 📧 אימייל
                             </label>
                             <input
                                 type="email"
-                                className="form-control"
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:bg-white"
                                 placeholder="example@email.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={loading}
                                 style={{
-                                    borderRadius: "10px",
-                                    borderColor: "#e0e0e0",
-                                    padding: "0.75rem 1rem",
-                                    fontSize: "0.95rem",
-                                    fontFamily: "Rubik, sans-serif",
-                                    transition: "all 0.3s ease",
-                                    backgroundColor: "#fafafa"
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = "#667eea";
-                                    e.target.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-                                    e.target.style.backgroundColor = "white";
-                                    e.target.style.borderWidth = "2px";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = "#e0e0e0";
-                                    e.target.style.boxShadow = "none";
-                                    e.target.style.backgroundColor = "#fafafa";
-                                    e.target.style.borderWidth = "1px";
+                                    fontFamily: "Rubik, sans-serif"
                                 }}
                             />
                         </div>
 
                         {/* Password Input */}
-                        <div className="mb-4">
-                            <label
-                                className="form-label fw-semibold mb-2"
-                                style={{
-                                    color: "#333",
-                                    fontSize: "0.95rem",
-                                    letterSpacing: "0.3px"
-                                }}
-                            >
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                                 🔐 סיסמה
                             </label>
                             <input
                                 type="password"
-                                className="form-control"
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:bg-white"
                                 placeholder={isSignup ? "לפחות 6 תווים" : "הזן את הסיסמה שלך"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
                                 style={{
-                                    borderRadius: "10px",
-                                    borderColor: "#e0e0e0",
-                                    padding: "0.75rem 1rem",
-                                    fontSize: "0.95rem",
-                                    fontFamily: "Rubik, sans-serif",
-                                    transition: "all 0.3s ease",
-                                    backgroundColor: "#fafafa"
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = "#667eea";
-                                    e.target.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-                                    e.target.style.backgroundColor = "white";
-                                    e.target.style.borderWidth = "2px";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = "#e0e0e0";
-                                    e.target.style.boxShadow = "none";
-                                    e.target.style.backgroundColor = "#fafafa";
-                                    e.target.style.borderWidth = "1px";
+                                    fontFamily: "Rubik, sans-serif"
                                 }}
                             />
                             {isSignup && (
-                                <small
-                                    style={{
-                                        color: "#999",
-                                        marginTop: "0.5rem",
-                                        display: "block",
-                                        fontSize: "0.8rem"
-                                    }}
-                                >
+                                <small className="block text-gray-600 mt-2 text-xs italic">
                                     💡 הסיסמה חייבת להכיל לפחות 6 תווים
                                 </small>
                             )}
@@ -281,35 +178,28 @@ const Login = () => {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            className="btn fw-bold w-100"
+                            className="w-full font-bold py-3 px-4 rounded-lg text-white transition flex items-center justify-center gap-2"
                             disabled={loading}
                             style={{
                                 background: isSignup
                                     ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                                     : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "10px",
-                                padding: "0.75rem",
-                                fontSize: "1rem",
-                                fontWeight: "600",
-                                transition: "all 0.3s ease",
                                 boxShadow: isSignup
                                     ? "0 4px 12px rgba(102, 126, 234, 0.3)"
                                     : "0 4px 12px rgba(16, 185, 129, 0.3)"
                             }}
                             onMouseEnter={(e) => {
                                 if (!loading) {
-                                    e.target.style.transform = "translateY(-2px)";
-                                    e.target.style.boxShadow = isSignup
+                                    e.currentTarget.style.transform = "translateY(-2px)";
+                                    e.currentTarget.style.boxShadow = isSignup
                                         ? "0 6px 20px rgba(102, 126, 234, 0.4)"
                                         : "0 6px 20px rgba(16, 185, 129, 0.4)";
                                 }
                             }}
                             onMouseLeave={(e) => {
                                 if (!loading) {
-                                    e.target.style.transform = "translateY(0)";
-                                    e.target.style.boxShadow = isSignup
+                                    e.currentTarget.style.transform = "translateY(0)";
+                                    e.currentTarget.style.boxShadow = isSignup
                                         ? "0 4px 12px rgba(102, 126, 234, 0.3)"
                                         : "0 4px 12px rgba(16, 185, 129, 0.3)";
                                 }
@@ -321,36 +211,18 @@ const Login = () => {
                 </div>
 
                 {/* Footer */}
-                <div
-                    style={{
-                        backgroundColor: "#f9f9f9",
-                        padding: "1rem 1.5rem",
-                        borderTop: "1px solid #e0e0e0",
-                        textAlign: "center"
-                    }}
-                >
-                    <small style={{ color: "#666" }}>
+                <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 text-center">
+                    <small className="text-gray-700">
                         {!isSignup ? "אין לך חשבון? " : "כבר יש לך חשבון? "}
                         <button
-                            className="btn btn-link p-0 fw-bold"
+                            className="font-bold text-purple-600 transition hover:text-purple-800 bg-transparent border-none p-0 cursor-pointer"
                             onClick={() => {
                                 setIsSignup(!isSignup);
                                 setEmail("");
                                 setPassword("");
                             }}
-                            style={{
-                                color: "#667eea",
-                                textDecoration: "none",
-                                transition: "all 0.2s ease"
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.color = "#764ba2";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.color = "#667eea";
-                            }}
                         >
-                            {isSignup ? "כניסה כאן" : "הרשמה כאן"}
+                            {isSignup ? "היכנס כאן" : "הירשם כאן"}
                         </button>
                     </small>
                 </div>

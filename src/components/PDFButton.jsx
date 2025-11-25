@@ -9,16 +9,13 @@ const PDFButton = ({ targetId }) => {
         setIsExporting(true);
         setExportProgress(0);
 
-        // 1️⃣ Open all collapsible sections (GoalSection)
         const sections = document.querySelectorAll(".goal-section");
         sections.forEach((s) => s.classList.add("open-for-pdf"));
 
-        // 2️⃣ Hide buttons that shouldn't appear in PDF
         const hiddenButtons = document.querySelectorAll(".pdf-hidden");
         hiddenButtons.forEach((btn) => (btn.style.display = "none"));
 
         const element = document.getElementById(targetId);
-
         setExportProgress(25);
 
         const opt = {
@@ -29,7 +26,6 @@ const PDFButton = ({ targetId }) => {
             jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
         };
 
-        // 3️⃣ Wait a tick so CSS changes (open-for-pdf) render
         setTimeout(() => {
             setExportProgress(50);
 
@@ -39,12 +35,9 @@ const PDFButton = ({ targetId }) => {
                 .save()
                 .then(() => {
                     setExportProgress(100);
-
-                    // 4️⃣ Restore everything
                     sections.forEach((s) => s.classList.remove("open-for-pdf"));
                     hiddenButtons.forEach((btn) => (btn.style.display = ""));
 
-                    // Reset after success
                     setTimeout(() => {
                         setIsExporting(false);
                         setExportProgress(0);
@@ -55,7 +48,6 @@ const PDFButton = ({ targetId }) => {
                     setIsExporting(false);
                     setExportProgress(0);
 
-                    // Restore on error
                     sections.forEach((s) => s.classList.remove("open-for-pdf"));
                     hiddenButtons.forEach((btn) => (btn.style.display = ""));
                 });
@@ -63,31 +55,11 @@ const PDFButton = ({ targetId }) => {
     };
 
     return (
-        <div style={{ position: "relative", display: "inline-block" }}>
+        <div className="relative inline-block">
             <button
-                className="btn fw-bold"
+                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full font-bold transition disabled:opacity-90"
                 onClick={handleExport}
                 disabled={isExporting}
-                style={{
-                    background: isExporting
-                        ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                        : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "25px",
-                    padding: "0.75rem 1.5rem",
-                    fontSize: "1rem",
-                    fontWeight: "600",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    cursor: isExporting ? "not-allowed" : "pointer",
-                    opacity: isExporting ? 0.9 : 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
-                    letterSpacing: "0.3px"
-                }}
                 onMouseEnter={(e) => {
                     if (!isExporting) {
                         e.target.style.transform = "translateY(-2px)";
@@ -100,47 +72,39 @@ const PDFButton = ({ targetId }) => {
                         e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
                     }
                 }}
+                style={{
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
+                }}
             >
-                {isExporting ? (
-                    <>
-                        <span
-                            className="spinner-border spinner-border-sm"
-                            role="status"
-                            aria-hidden="true"
-                            style={{ width: "1rem", height: "1rem" }}
-                        ></span>
-                        <span>ייצוא...</span>
-                    </>
-                ) : (
-                    <>
-                        <span style={{ fontSize: "1.2rem" }}>📄</span>
-                        <span>יצוא ל-PDF</span>
-                    </>
-                )}
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                    {isExporting ? (
+                        <>
+                            <span
+                                className="inline-block animate-spin"
+                                style={{ width: "1rem", height: "1rem" }}
+                            >
+                                ⏳
+                            </span>
+                            <span>ייצוא...</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-lg">📄</span>
+                            <span>יצוא ל-PDF</span>
+                        </>
+                    )}
+                </div>
             </button>
 
             {/* Progress Bar */}
             {isExporting && (
                 <div
-                    style={{
-                        position: "absolute",
-                        bottom: "-8px",
-                        left: 0,
-                        right: 0,
-                        height: "4px",
-                        backgroundColor: "rgba(0, 0, 0, 0.1)",
-                        borderRadius: "2px",
-                        overflow: "hidden"
-                    }}
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded overflow-hidden"
+                    style={{ transform: "translateY(8px)" }}
                 >
                     <div
-                        style={{
-                            height: "100%",
-                            background: "linear-gradient(90deg, #10b981 0%, #059669 100%)",
-                            width: `${exportProgress}%`,
-                            transition: "width 0.3s ease",
-                            borderRadius: "2px"
-                        }}
+                        className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition"
+                        style={{ width: `${exportProgress}%` }}
                     ></div>
                 </div>
             )}
