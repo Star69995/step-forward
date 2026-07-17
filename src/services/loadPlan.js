@@ -9,7 +9,7 @@ export const loadPlan = async (uid, planId) => {
     if (snap.exists()) {
         return snap.data();
     } else {
-        console.log("🟡 No saved plan found");
+        console.log("No saved plan found");
         return null;
     }
 };

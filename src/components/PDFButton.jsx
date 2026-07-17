@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import html2pdf from "html2pdf.js";
+import { FileDown } from "lucide-react";
+import { toast } from "react-toastify";
+import Button from "./ui/Button";
 
 const PDFButton = ({ targetId }) => {
     const [isExporting, setIsExporting] = useState(false);
@@ -9,8 +12,8 @@ const PDFButton = ({ targetId }) => {
         setIsExporting(true);
         setExportProgress(0);
 
-        const sections = document.querySelectorAll(".goal-section");
-        sections.forEach((s) => s.classList.add("open-for-pdf"));
+        const sections = document.querySelectorAll(".collapsible-section");
+        sections.forEach((s) => s.classList.add("pdf-force-open"));
 
         const hiddenButtons = document.querySelectorAll(".pdf-hidden");
         hiddenButtons.forEach((btn) => (btn.style.display = "none"));
@@ -26,6 +29,11 @@ const PDFButton = ({ targetId }) => {
             jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
         };
 
+        const restore = () => {
+            sections.forEach((s) => s.classList.remove("pdf-force-open"));
+            hiddenButtons.forEach((btn) => (btn.style.display = ""));
+        };
+
         setTimeout(() => {
             setExportProgress(50);
 
@@ -35,9 +43,7 @@ const PDFButton = ({ targetId }) => {
                 .save()
                 .then(() => {
                     setExportProgress(100);
-                    sections.forEach((s) => s.classList.remove("open-for-pdf"));
-                    hiddenButtons.forEach((btn) => (btn.style.display = ""));
-
+                    restore();
                     setTimeout(() => {
                         setIsExporting(false);
                         setExportProgress(0);
@@ -45,65 +51,33 @@ const PDFButton = ({ targetId }) => {
                 })
                 .catch((err) => {
                     console.error("PDF creation failed:", err);
+                    toast.error("שגיאה בייצוא ה-PDF, יש לנסות שוב");
                     setIsExporting(false);
                     setExportProgress(0);
-
-                    sections.forEach((s) => s.classList.remove("open-for-pdf"));
-                    hiddenButtons.forEach((btn) => (btn.style.display = ""));
+                    restore();
                 });
         }, 400);
     };
 
     return (
         <div className="relative inline-block">
-            <button
-                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full font-bold transition disabled:opacity-90"
+            <Button
+                variant="success"
+                icon={FileDown}
+                loading={isExporting}
+                loadingText="מייצא..."
                 onClick={handleExport}
-                disabled={isExporting}
-                onMouseEnter={(e) => {
-                    if (!isExporting) {
-                        e.target.style.transform = "translateY(-2px)";
-                        e.target.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.4)";
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    if (!isExporting) {
-                        e.target.style.transform = "translateY(0)";
-                        e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
-                    }
-                }}
-                style={{
-                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
-                }}
             >
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                    {isExporting ? (
-                        <>
-                            <span
-                                className="inline-block animate-spin"
-                                style={{ width: "1rem", height: "1rem" }}
-                            >
-                                ⏳
-                            </span>
-                            <span>ייצוא...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="text-lg">📄</span>
-                            <span>יצוא ל-PDF</span>
-                        </>
-                    )}
-                </div>
-            </button>
+                ייצוא ל-PDF
+            </Button>
 
-            {/* Progress Bar */}
             {isExporting && (
                 <div
                     className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded overflow-hidden"
                     style={{ transform: "translateY(8px)" }}
                 >
                     <div
-                        className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition"
+                        className="h-full bg-gradient-to-r from-success to-emerald-600 transition-all"
                         style={{ width: `${exportProgress}%` }}
                     ></div>
                 </div>

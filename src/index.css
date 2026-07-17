@@ -14,7 +14,9 @@
 
 html,
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Calm, neutral page background — brand color is used as an accent
+     (header bars, card headers), not as a full-viewport gradient. */
+  background: #F1F5F9;
   min-height: 100vh;
   direction: rtl;
   text-align: right;
@@ -22,7 +24,6 @@ body {
 }
 
 #root {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
@@ -30,20 +31,30 @@ body {
   background: transparent;
 }
 
-.goal-content.hidden {
-  display: none;
+/* PDF export force-expands every collapsible section (see PDFButton.jsx)
+   so nothing the user had collapsed is missing from the exported file. */
+.collapsible-section.pdf-force-open .collapsible-content {
+  grid-template-rows: 1fr !important;
+  opacity: 1 !important;
 }
 
-.goal-content.shown {
-  display: block;
+.collapsible-section.pdf-force-open .collapsible-chevron {
+  transform: rotate(180deg) !important;
 }
 
-.goal-section.open-for-pdf .goal-content {
-  display: block !important;
+/* Shared focus style for dynamically-colored fields (Goal/GoalSection).
+   Centralized here so every accent-colored input behaves the same on
+   focus without each component re-implementing its own JS handlers. */
+.accent-field {
+  border-width: 2px;
+  border-color: rgb(224 224 224);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.goal-section.open-for-pdf .arrow-icon {
-  transform: rotate(90deg) !important;
+.accent-field:focus {
+  border-color: var(--accent, #1E3A5F);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #1E3A5F) 20%, transparent);
+  outline: none;
 }
 
 @keyframes fadeIn {
