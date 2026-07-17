@@ -20,6 +20,31 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
 
         const element = document.getElementById(targetId);
 
+        // A section's header is a sibling of its content, not a wrapper
+        // around it, so avoiding a break inside the first card only pushes
+        // that card to the next page — the header is left stranded above a
+        // blank gap. Drag the header down next to that first card so they
+        // move together. "fieldset"/".pdf-stack-grid" are pass-through
+        // wrappers with no content of their own, so drill through those to
+        // find the actual first card.
+        const headerGlues = [];
+        sections.forEach((section) => {
+            const header = section.querySelector(":scope > button");
+            let firstChild = section.querySelector(":scope > .collapsible-content > div > div")?.firstElementChild;
+            while (firstChild && (firstChild.tagName === "FIELDSET" || firstChild.classList.contains("pdf-stack-grid"))) {
+                firstChild = firstChild.firstElementChild;
+            }
+            if (!header || !firstChild || !firstChild.classList.contains("pdf-avoid-break")) return;
+
+            const originalParent = firstChild.parentNode;
+            const wrapper = document.createElement("div");
+            wrapper.className = "pdf-avoid-break";
+            header.insertAdjacentElement("beforebegin", wrapper);
+            wrapper.appendChild(header);
+            wrapper.appendChild(firstChild);
+            headerGlues.push({ wrapper, header, firstChild, originalParent });
+        });
+
         // The short-goal cards sit side by side on wide screens — readable
         // on screen, but cramped and awkward to paginate on a printed page.
         // Stack them for the duration of the capture.
@@ -60,6 +85,11 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
             fieldSwaps.forEach(({ field, display }) => {
                 field.style.display = "";
                 display.remove();
+            });
+            headerGlues.forEach(({ wrapper, header, firstChild, originalParent }) => {
+                wrapper.insertAdjacentElement("beforebegin", header);
+                originalParent.insertBefore(firstChild, originalParent.firstChild);
+                wrapper.remove();
             });
         };
 

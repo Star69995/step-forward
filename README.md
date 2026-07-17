@@ -68,6 +68,8 @@ npm run dev
 | `npm run build`    | בנייה לפרודקשן (לתיקיית `dist`)          |
 | `npm run preview`  | הרצת גרסת ה-build לצורך בדיקה מקומית     |
 | `npm run lint`     | הרצת בדיקת lint על כל הקוד               |
+| `npm run deploy`   | בנייה ופריסה ל-Firebase Hosting (production) |
+| `npm run deploy:preview` | בנייה ופריסה לערוץ preview זמני בשם `preview` ב-Firebase Hosting (להריץ עם שם ערוץ אחר: `npm run deploy:preview -- <שם-ערוץ>`) |
 
 ---
 
