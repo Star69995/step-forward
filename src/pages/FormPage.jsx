@@ -88,7 +88,7 @@ const FormPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-800 mb-2">👤 שם מלא</label>
-                                <FormSection name="name" rows={1} showLabel={false} />
+                                <FormSection name="name" rows={1} showLabel={false} placeholder="השם שלך" />
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-800 mb-2">📅 תחילת התהליך</label>
@@ -108,7 +108,7 @@ const FormPage = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-800 mb-2">👥 שותפים</label>
-                                <FormSection name="partners" rows={1} showLabel={false} />
+                                <FormSection name="partners" rows={1} showLabel={false} placeholder="כתוב את המחשבות שלך כאן..." />
                             </div>
                         </div>
                     </div>
