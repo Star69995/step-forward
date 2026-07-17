@@ -72,7 +72,7 @@ const Login = () => {
         <div className="flex justify-center items-center min-h-screen p-4" dir="rtl">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
                 {/* Header */}
-                <div className="text-white py-8 px-6 text-center bg-gradient-to-br from-primary to-secondary">
+                <div className="text-white py-8 px-6 text-center bg-gradient-to-br from-headerFrom to-headerTo">
                     <h1 className="flex items-center justify-center gap-2 text-4xl font-bold mb-2">
                         <Footprints size={32} aria-hidden="true" />
                         צעד קדימה

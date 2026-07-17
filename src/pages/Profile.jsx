@@ -15,6 +15,7 @@ import {
     Clock,
     Pencil,
     Trash2,
+    FileDown,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -56,6 +57,14 @@ const Profile = () => {
     // we already have in memory.
     const openPlan = (plan) => {
         navigate(`/form?planId=${plan.id}`, { state: { planData: plan } });
+    };
+
+    // Reuses the same PDFButton export logic as the plan page itself — it
+    // needs the plan's content actually rendered in the DOM to export, so
+    // this opens the plan and triggers the export automatically there
+    // instead of duplicating the PDF logic on the list page.
+    const exportPlan = (plan) => {
+        navigate(`/form?planId=${plan.id}`, { state: { planData: plan, autoExport: true } });
     };
 
     return (
@@ -125,7 +134,7 @@ const Profile = () => {
 
                                     {/* Card Body */}
                                     <div className="px-6 py-4">
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
                                             <Button
                                                 variant="blue"
                                                 size="sm"
@@ -136,17 +145,27 @@ const Profile = () => {
                                                 עריכה
                                             </Button>
                                             <Button
-                                                variant="danger"
+                                                variant="success"
                                                 size="sm"
                                                 rounded="rounded-lg"
-                                                icon={Trash2}
-                                                loading={deleting === plan.id}
-                                                loadingText="מוחק..."
-                                                onClick={() => setPendingDelete(plan)}
+                                                icon={FileDown}
+                                                onClick={() => exportPlan(plan)}
                                             >
-                                                מחיקה
+                                                ייצוא ל-PDF
                                             </Button>
                                         </div>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            rounded="rounded-lg"
+                                            icon={Trash2}
+                                            fullWidth
+                                            loading={deleting === plan.id}
+                                            loadingText="מוחק..."
+                                            onClick={() => setPendingDelete(plan)}
+                                        >
+                                            מחיקה
+                                        </Button>
                                     </div>
                                 </div>
                             ))}

@@ -16,13 +16,13 @@ const Header = () => {
     const navButtonClass = (path) =>
         `px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
             isActive(path)
-                ? "bg-white text-secondary"
+                ? "bg-white text-headerTo"
                 : "bg-white/15 text-white border-2 border-white/40 hover:bg-white/25 hover:border-white"
         }`;
 
     return (
         <nav
-            className="sticky top-0 z-50 shadow-lg bg-gradient-to-r from-primary to-secondary"
+            className="sticky top-0 z-50 shadow-lg bg-gradient-to-r from-headerFrom to-headerTo"
             dir="rtl"
         >
             <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">

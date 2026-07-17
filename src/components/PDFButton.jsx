@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import html2pdf from "html2pdf.js";
 import { FileDown } from "lucide-react";
 import { toast } from "react-toastify";
 import Button from "./ui/Button";
 
-const PDFButton = ({ targetId }) => {
+const PDFButton = ({ targetId, autoTrigger = false }) => {
     const [isExporting, setIsExporting] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
 
@@ -58,6 +58,13 @@ const PDFButton = ({ targetId }) => {
                 });
         }, 400);
     };
+
+    // Lets a caller land on this plan and export it in one step (e.g. from
+    // the plans list) instead of duplicating the export logic elsewhere.
+    useEffect(() => {
+        if (autoTrigger) handleExport();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div className="relative inline-block">

@@ -15,6 +15,10 @@ export default {
                 info: '#0369A1',
                 warning: '#B45309',
                 danger: '#B91C1C',
+                // Top navbar gradient — kept separate from primary/secondary
+                // since it's specific to the header, not the general brand pair.
+                headerFrom: '#667eea',
+                headerTo: '#764ba2',
             },
             fontFamily: {
                 rubik: ['Rubik', 'sans-serif'],
