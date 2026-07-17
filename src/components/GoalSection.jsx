@@ -91,7 +91,7 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
 
     if (!collapsible) {
         return (
-            <div className="bg-white rounded-2xl shadow-xs p-4 sm:p-6 min-w-0">
+            <div className="pdf-avoid-break bg-white rounded-2xl shadow-xs p-4 sm:p-6 min-w-0">
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <span className="flex items-center gap-2 text-lg font-bold min-w-0" style={{ color: accent }}>
                         <span className="truncate">{title || `מטרה לטווח קצר #${index}`}</span>

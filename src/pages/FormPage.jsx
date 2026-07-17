@@ -317,7 +317,7 @@ const FormPage = () => {
                     {/* PAGE 2: GOALS */}
                     <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning">
                         <fieldset disabled={viewMode} className="border-0 min-w-0">
-                            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                                 <strong className="flex items-center gap-2 text-blue-700 mb-2">
                                     <MapPin size={18} aria-hidden="true" />
                                     מטרה לטווח ארוך
@@ -326,7 +326,7 @@ const FormPage = () => {
                                 <FormSection name="longTermGoal" label="הגדרת המטרה:" rows={3} />
                             </div>
 
-                            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                                 <strong className="flex items-center gap-2 text-blue-700 mb-2">
                                     <Telescope size={18} aria-hidden="true" />
                                     מטרת-על (תמונת עתיד)
@@ -347,7 +347,7 @@ const FormPage = () => {
                                 accent="success"
                                 defaultOpen
                             >
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="pdf-stack-grid grid grid-cols-3 gap-4">
                                     <GoalSection
                                         title={
                                             <span className="flex items-center gap-1.5">
@@ -391,14 +391,14 @@ const FormPage = () => {
                             </CollapsibleSection>
                         ) : (
                             <>
-                                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                                <div className="pdf-avoid-break mb-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
                                     <strong className="flex items-center gap-2 text-green-700">
                                         <Zap size={18} aria-hidden="true" />
                                         מטרות לטווח קצר (6 חודשים)
                                     </strong>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="pdf-stack-grid grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <GoalSection
                                         title={
                                             <span className="flex items-center gap-1.5">

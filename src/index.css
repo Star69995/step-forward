@@ -74,6 +74,25 @@
     transform: rotate(180deg) !important;
   }
 
+  /* Keeps a card-like block (goal box, highlighted definition box) from
+   being sliced across a PDF page boundary — see PDFButton.jsx/index.css. */
+  .pdf-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Stand-in for a hidden input/textarea during PDF export (see
+   PDFButton.jsx) — reads as plain document text instead of a form field. */
+  .pdf-plain-text {
+    width: 100%;
+    padding: 0.5rem 0.25rem;
+    color: #1f2937;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   /* Shared focus style for dynamically-colored fields (Goal/GoalSection).
    Centralized here so every accent-colored input behaves the same on
    focus without each component re-implementing its own JS handlers. */

@@ -28,7 +28,7 @@ const CollapsibleSection = ({
     const colorStyle = accentColor ? { color: accentColor } : undefined;
 
     return (
-        <div className={`collapsible-section bg-white rounded-2xl shadow-xs mb-6 overflow-hidden transition hover:shadow-md ${className}`}>
+        <div className={`collapsible-section pdf-avoid-break bg-white rounded-2xl shadow-xs mb-6 overflow-hidden transition hover:shadow-md ${className}`}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}

@@ -19,6 +19,30 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
         hiddenButtons.forEach((btn) => (btn.style.display = "none"));
 
         const element = document.getElementById(targetId);
+
+        // The short-goal cards sit side by side on wide screens — readable
+        // on screen, but cramped and awkward to paginate on a printed page.
+        // Stack them for the duration of the capture.
+        const stackGrids = element.querySelectorAll(".pdf-stack-grid");
+        stackGrids.forEach((grid) => (grid.style.display = "block"));
+
+        // Native inputs/textareas render as boxed form controls (and
+        // html2canvas doesn't reliably draw their value at all) — swap each
+        // one for a plain text node for the duration of the capture so the
+        // export reads like a document instead of a blank form.
+        const textFields = element.querySelectorAll(
+            "textarea, input[type='text'], input[type='date'], input:not([type])"
+        );
+        const fieldSwaps = [];
+        textFields.forEach((field) => {
+            const display = document.createElement("div");
+            display.textContent = field.value || "—";
+            display.className = "pdf-plain-text";
+            field.insertAdjacentElement("afterend", display);
+            field.style.display = "none";
+            fieldSwaps.push({ field, display });
+        });
+
         setExportProgress(25);
 
         const opt = {
@@ -32,6 +56,11 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
         const restore = () => {
             sections.forEach((s) => s.classList.remove("pdf-force-open"));
             hiddenButtons.forEach((btn) => (btn.style.display = ""));
+            stackGrids.forEach((grid) => (grid.style.display = ""));
+            fieldSwaps.forEach(({ field, display }) => {
+                field.style.display = "";
+                display.remove();
+            });
         };
 
         setTimeout(() => {

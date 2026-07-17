@@ -4,6 +4,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  resolve: {
+    // html2pdf.js requires "html2canvas" internally; html2canvas itself can't
+    // parse the oklab()/color-mix() colors Tailwind v4 emits for gradients and
+    // opacity modifiers, which made every PDF export throw. html2canvas-pro is
+    // a drop-in fork that adds support for those color functions.
+    alias: {
+      html2canvas: 'html2canvas-pro',
+    },
+  },
   plugins: [react(),
     VitePWA({
       mode: 'development',
