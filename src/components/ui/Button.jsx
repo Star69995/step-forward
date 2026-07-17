@@ -5,11 +5,11 @@ import Spinner from "./Spinner";
 // two-tone gradients within one hue — reads as institutional, not a
 // consumer-app "neon" button.
 const VARIANTS = {
-    primary: "bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg",
-    success: "bg-gradient-to-r from-success to-teal-800 text-white shadow-md hover:shadow-lg",
-    danger: "bg-gradient-to-r from-danger to-red-800 text-white shadow-md hover:shadow-lg",
-    blue: "bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-md hover:shadow-lg",
-    outline: "bg-white text-gray-800 border-2 border-gray-300 hover:border-primary shadow-sm hover:shadow-md",
+    primary: "bg-linear-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg",
+    success: "bg-linear-to-r from-success to-teal-800 text-white shadow-md hover:shadow-lg",
+    danger: "bg-linear-to-r from-danger to-red-800 text-white shadow-md hover:shadow-lg",
+    blue: "bg-linear-to-r from-blue-700 to-blue-900 text-white shadow-md hover:shadow-lg",
+    outline: "bg-white text-gray-800 border-2 border-gray-300 hover:border-primary shadow-xs hover:shadow-md",
 };
 
 const SIZES = {

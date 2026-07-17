@@ -1,10 +1,10 @@
 import React from "react";
 
 const DENSE_CLASS =
-    "w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none text-sm transition";
+    "w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition";
 
 const FULL_CLASS =
-    "w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10 focus:bg-white hover:border-gray-400";
+    "w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-secondary focus:outline-hidden focus:ring-2 focus:ring-secondary/10 focus:bg-white hover:border-gray-400";
 
 // Single visual source for a labeled text field, used both by form-bound
 // fields (FormSection, via react-hook-form's register spread) and plain

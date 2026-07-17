@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { deleteDoc, doc } from "firebase/firestore";
 import { db } from "../services/firebase";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { usePlans } from "../services/usePlans";
@@ -71,7 +71,7 @@ const Profile = () => {
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header Section */}
-                <div className="bg-white/95 backdrop-blur rounded-3xl shadow-lg mb-8 p-8">
+                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-8">
                     <div className="flex justify-between items-start gap-4 flex-wrap">
                         <div>
                             <h2 className="flex items-center gap-2 text-3xl font-bold text-gray-800 mb-1">
@@ -99,11 +99,11 @@ const Profile = () => {
                     </div>
 
                     {loading ? (
-                        <div className="bg-white rounded-2xl shadow-sm p-12 text-center text-gray-600">
+                        <div className="bg-white rounded-2xl shadow-xs p-12 text-center text-gray-600">
                             טוען את התוכניות...
                         </div>
                     ) : plans.length === 0 ? (
-                        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                        <div className="bg-white rounded-2xl shadow-xs p-12 text-center">
                             <Inbox size={40} className="mx-auto text-gray-400 mb-3" aria-hidden="true" />
                             <h4 className="text-2xl text-gray-400 mb-3">אין עדיין תוכניות</h4>
                             <p className="text-gray-500 mb-6">ניתן להתחיל ליצור את התוכנית הראשונה לקידום המטרות</p>
@@ -116,11 +116,11 @@ const Profile = () => {
                             {plans.map((plan) => (
                                 <div
                                     key={plan.id}
-                                    className="bg-white rounded-2xl shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg border-l-4 border-primary"
+                                    className="bg-white rounded-2xl shadow-xs overflow-hidden transition hover:-translate-y-1 hover:shadow-lg border-l-4 border-primary"
                                 >
                                     {/* Card Header */}
                                     <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                                        <h5 className="flex items-center gap-1.5 font-bold text-gray-800 mb-2 break-words">
+                                        <h5 className="flex items-center gap-1.5 font-bold text-gray-800 mb-2 wrap-break-word">
                                             <Pin size={14} aria-hidden="true" />
                                             {plan.name || "תוכנית ללא שם"}
                                         </h5>

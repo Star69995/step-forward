@@ -25,7 +25,7 @@
 | תחום           | כלים                                                          |
 | -------------- | -------------------------------------------------------------- |
 | Front-End      | [React + Vite](https://vitejs.dev/)                             |
-| עיצוב          | [Tailwind CSS](https://tailwindcss.com/) — מקור עיצוב יחיד, ראו `tailwind.config.js` |
+| עיצוב          | [Tailwind CSS v4](https://tailwindcss.com/) — מקור עיצוב יחיד, ראו בלוק `@theme` ב-`src/index.css` |
 | אייקונים       | [lucide-react](https://lucide.dev/) — ללא אמוג'ים בממשק         |
 | State & Forms  | [react-hook-form](https://react-hook-form.com/)                |
 | Routing        | [react-router-dom](https://reactrouter.com/)                    |
@@ -40,7 +40,7 @@
 
 ### דרישות מקדימות
 
-- Node.js v18+
+- Node.js v22.12+ (מומלץ Node 24 LTS)
 - חשבון Firebase עם פרויקט פעיל (חינם)
 
 ### שלבים

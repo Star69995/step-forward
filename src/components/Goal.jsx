@@ -1,10 +1,12 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Target, Calendar } from "lucide-react";
-import twConfig from "../../tailwind.config.js";
 import CompletionCheck from "./ui/CompletionCheck";
 
-const colors = twConfig.theme.extend.colors;
+// Theme colors now live solely in the `@theme` block in index.css (Tailwind
+// v4) — read them via their CSS custom properties instead of duplicating
+// the values here, so that stays the single source of truth.
+const colors = { primary: "var(--color-primary)" };
 
 // viewMode gates two mutually-exclusive layers: while defining the plan
 // (viewMode=false) the target's own content is editable but progress can't

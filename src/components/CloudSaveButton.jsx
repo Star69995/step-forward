@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Cloud } from "lucide-react";
 import { savePlan } from "../services/savePlan";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { toast } from "react-toastify";
 import Button from "./ui/Button";
 

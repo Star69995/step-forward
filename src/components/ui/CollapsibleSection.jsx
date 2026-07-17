@@ -28,7 +28,7 @@ const CollapsibleSection = ({
     const colorStyle = accentColor ? { color: accentColor } : undefined;
 
     return (
-        <div className={`collapsible-section bg-white rounded-2xl shadow-sm mb-6 overflow-hidden transition hover:shadow-md ${className}`}>
+        <div className={`collapsible-section bg-white rounded-2xl shadow-xs mb-6 overflow-hidden transition hover:shadow-md ${className}`}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
@@ -36,10 +36,10 @@ const CollapsibleSection = ({
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-6 text-right transition hover:bg-gray-50"
             >
                 <span className={`flex items-center gap-2 text-lg font-bold min-w-0 ${titleColorClass}`} style={colorStyle}>
-                    {Icon && <Icon size={20} className="flex-shrink-0" aria-hidden="true" />}
+                    {Icon && <Icon size={20} className="shrink-0" aria-hidden="true" />}
                     <span className="truncate">{title}</span>
                 </span>
-                <span className="flex items-center gap-2 flex-shrink-0">
+                <span className="flex items-center gap-2 shrink-0">
                     {badge}
                     <ChevronDown
                         size={20}

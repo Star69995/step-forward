@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Footprints, FileText, User, LogOut } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import PlanSwitcher from "./PlanSwitcher";
 
 const Header = () => {
@@ -22,7 +22,7 @@ const Header = () => {
 
     return (
         <nav
-            className="sticky top-0 z-50 shadow-lg bg-gradient-to-r from-headerFrom to-headerTo"
+            className="sticky top-0 z-50 shadow-lg bg-linear-to-r from-headerFrom to-headerTo"
             dir="rtl"
         >
             <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">

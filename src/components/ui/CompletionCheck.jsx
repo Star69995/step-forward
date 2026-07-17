@@ -12,7 +12,7 @@ const CompletionCheck = ({
     onCheckedChange,
     date = "",
     onDateChange,
-    color = "#1E3A5F",
+    color = "var(--color-primary)",
     label = "המשימה הושלמה",
     dateLabel = "תאריך ביצוע",
     disabled = false,
@@ -45,7 +45,7 @@ const CompletionCheck = ({
                     checked={checked}
                     onChange={handleToggle}
                     disabled={disabled}
-                    className="w-5 h-5 rounded border-2 border-gray-300 transition disabled:cursor-not-allowed"
+                    className="w-5 h-5 rounded-sm border-2 border-gray-300 transition disabled:cursor-not-allowed"
                     style={{ accentColor: color }}
                 />
                 <CheckCircle2

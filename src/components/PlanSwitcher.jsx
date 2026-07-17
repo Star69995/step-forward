@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FolderOpen } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { usePlans } from "../services/usePlans";
 
 // Lets the user jump directly to any of their saved plans from wherever

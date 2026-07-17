@@ -62,7 +62,9 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
     // Lets a caller land on this plan and export it in one step (e.g. from
     // the plans list) instead of duplicating the export logic elsewhere.
     useEffect(() => {
-        if (autoTrigger) handleExport();
+        if (!autoTrigger) return;
+        const timeoutId = setTimeout(handleExport, 0);
+        return () => clearTimeout(timeoutId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -80,11 +82,11 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
 
             {isExporting && (
                 <div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded overflow-hidden"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-sm overflow-hidden"
                     style={{ transform: "translateY(8px)" }}
                 >
                     <div
-                        className="h-full bg-gradient-to-r from-success to-emerald-600 transition-all"
+                        className="h-full bg-linear-to-r from-success to-emerald-600 transition-all"
                         style={{ width: `${exportProgress}%` }}
                     ></div>
                 </div>

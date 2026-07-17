@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import FormSection from "../components/FormSection";
 import PDFButton from "../components/PDFButton";
 import CloudSaveButton from "../components/CloudSaveButton";
@@ -164,7 +164,7 @@ const FormPage = () => {
         <FormProvider {...methods}>
             <div dir="rtl" id="formArea" className="min-h-screen pb-8">
                 {/* HEADER */}
-                <div className="text-white py-12 mb-8 shadow-sm bg-gradient-to-br from-primary to-secondary">
+                <div className="text-white py-12 mb-8 shadow-xs bg-linear-to-br from-primary to-secondary">
                     <div className="max-w-6xl mx-auto px-4">
                         <h1 className="flex items-center gap-2 text-4xl font-bold mb-2">
                             <Footprints size={32} aria-hidden="true" />
@@ -209,7 +209,7 @@ const FormPage = () => {
                                     <input
                                         type="date"
                                         {...methods.register("startDate")}
-                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
                                     />
                                 </div>
                                 <div>
@@ -220,7 +220,7 @@ const FormPage = () => {
                                     <input
                                         type="date"
                                         {...methods.register("endDate")}
-                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
                                     />
                                 </div>
                                 <div>
@@ -240,7 +240,7 @@ const FormPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-success text-white p-1.5 rounded">
+                                        <span className="bg-success text-white p-1.5 rounded-sm">
                                             <CheckCircle2 size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">מה הצלחתי עד עכשיו?</label>
@@ -250,7 +250,7 @@ const FormPage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-info text-white p-1.5 rounded">
+                                        <span className="bg-info text-white p-1.5 rounded-sm">
                                             <Wrench size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">אילו כלים?</label>
@@ -260,7 +260,7 @@ const FormPage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-warning text-white p-1.5 rounded">
+                                        <span className="bg-warning text-white p-1.5 rounded-sm">
                                             <Lightbulb size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">מה למדתי?</label>
@@ -271,7 +271,7 @@ const FormPage = () => {
 
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-primary text-white p-1.5 rounded">
+                                        <span className="bg-primary text-white p-1.5 rounded-sm">
                                             <Target size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">מה מסקרן אותי?</label>
@@ -281,7 +281,7 @@ const FormPage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-info text-white p-1.5 rounded">
+                                        <span className="bg-info text-white p-1.5 rounded-sm">
                                             <Handshake size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">מי/מה עוזר?</label>
@@ -291,7 +291,7 @@ const FormPage = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-danger text-white p-1.5 rounded">
+                                        <span className="bg-danger text-white p-1.5 rounded-sm">
                                             <Star size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">מה חשוב לי עכשיו?</label>
@@ -302,7 +302,7 @@ const FormPage = () => {
 
                                 <div className="lg:col-span-3 bg-gray-100 p-4 rounded-lg">
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-gray-600 text-white p-1.5 rounded">
+                                        <span className="bg-gray-600 text-white p-1.5 rounded-sm">
                                             <Dumbbell size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-gray-800">כוחות ומשאבים?</label>

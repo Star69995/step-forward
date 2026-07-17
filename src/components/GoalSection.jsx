@@ -5,16 +5,15 @@ import Goal from "./Goal";
 import InfoHint from "./ui/InfoHint";
 import CollapsibleSection from "./ui/CollapsibleSection";
 import CompletionCheck from "./ui/CompletionCheck";
-import twConfig from "../../tailwind.config.js";
-
-const colors = twConfig.theme.extend.colors;
-
+// Theme colors now live solely in the `@theme` block in index.css (Tailwind
+// v4) — read them via their CSS custom properties instead of duplicating
+// the values here, so that stays the single source of truth.
 const BADGE_COLORS = {
-    primary: colors.primary,
-    info: colors.info,
-    success: colors.success,
-    warning: colors.warning,
-    danger: colors.danger,
+    primary: "var(--color-primary)",
+    info: "var(--color-info)",
+    success: "var(--color-success)",
+    warning: "var(--color-warning)",
+    danger: "var(--color-danger)",
 };
 
 // viewMode gates two mutually-exclusive layers: while defining the plan
@@ -76,7 +75,7 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
 
             <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-4 tracking-wide">
-                    <span className="w-1 h-5 rounded" style={{ backgroundColor: accent }}></span>
+                    <span className="w-1 h-5 rounded-sm" style={{ backgroundColor: accent }}></span>
                     <Target size={16} aria-hidden="true" />
                     יעדים ספציפיים
                     <InfoHint text="יעד קטן וממוקד שאפשר לבדוק אם הושג עד תאריך מסוים — למשל צעד מעשי אחד בדרך למטרה." />
@@ -92,7 +91,7 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
 
     if (!collapsible) {
         return (
-            <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 min-w-0">
+            <div className="bg-white rounded-2xl shadow-xs p-4 sm:p-6 min-w-0">
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <span className="flex items-center gap-2 text-lg font-bold min-w-0" style={{ color: accent }}>
                         <span className="truncate">{title || `מטרה לטווח קצר #${index}`}</span>

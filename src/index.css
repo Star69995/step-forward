@@ -1,76 +1,107 @@
-@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap') layer(base);
 
-/* @import "tailwindcss"; */
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+  --color-primary: #1e3a5f;
+  --color-secondary: #13253b;
+  --color-success: #0f766e;
+  --color-info: #0369a1;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-headerFrom: #667eea;
+  --color-headerTo: #764ba2;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --font-rubik: Rubik, sans-serif;
 }
 
-html,
-body {
-  /* Calm, neutral page background — brand color is used as an accent
-     (header bars, card headers), not as a full-viewport gradient. */
-  background: #F1F5F9;
-  min-height: 100vh;
-  direction: rtl;
-  text-align: right;
-  font-family: "Rubik", sans-serif;
-}
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
 
-#root {
-  min-height: 100vh;
-}
-
-.form-wrapper {
-  background: transparent;
-}
-
-/* PDF export force-expands every collapsible section (see PDFButton.jsx)
-   so nothing the user had collapsed is missing from the exported file. */
-.collapsible-section.pdf-force-open .collapsible-content {
-  grid-template-rows: 1fr !important;
-  opacity: 1 !important;
-}
-
-.collapsible-section.pdf-force-open .collapsible-chevron {
-  transform: rotate(180deg) !important;
-}
-
-/* Shared focus style for dynamically-colored fields (Goal/GoalSection).
-   Centralized here so every accent-colored input behaves the same on
-   focus without each component re-implementing its own JS handlers. */
-.accent-field {
-  border-width: 2px;
-  border-color: rgb(224 224 224);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
-
-.accent-field:focus {
-  border-color: var(--accent, #1E3A5F);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #1E3A5F) 20%, transparent);
-  outline: none;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@utility fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
 @layer utilities {
-  .fade-in {
-    animation: fadeIn 0.3s ease-out;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    /* Calm, neutral page background — brand color is used as an accent
+     (header bars, card headers), not as a full-viewport gradient. */
+    background: #f1f5f9;
+    min-height: 100vh;
+    direction: rtl;
+    text-align: right;
+    font-family: 'Rubik', sans-serif;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  .form-wrapper {
+    background: transparent;
+  }
+
+  /* PDF export force-expands every collapsible section (see PDFButton.jsx)
+   so nothing the user had collapsed is missing from the exported file. */
+  .collapsible-section.pdf-force-open .collapsible-content {
+    grid-template-rows: 1fr !important;
+    opacity: 1 !important;
+  }
+
+  .collapsible-section.pdf-force-open .collapsible-chevron {
+    transform: rotate(180deg) !important;
+  }
+
+  /* Shared focus style for dynamically-colored fields (Goal/GoalSection).
+   Centralized here so every accent-colored input behaves the same on
+   focus without each component re-implementing its own JS handlers. */
+  .accent-field {
+    border-width: 2px;
+    border-color: rgb(224 224 224);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .accent-field:focus {
+    border-color: var(--accent, #1e3a5f);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--accent, #1e3a5f) 20%, transparent);
+    outline: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
