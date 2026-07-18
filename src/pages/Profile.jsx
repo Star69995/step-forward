@@ -219,7 +219,7 @@ const Profile = () => {
                                     <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
                                         <h5 className="flex items-center gap-1.5 font-bold text-gray-800 wrap-break-word">
                                             <Clock size={14} aria-hidden="true" />
-                                            {formatPlanLabel(plan)}
+                                            {formatPlanLabel(plan, plans)}
                                         </h5>
                                     </div>
 
@@ -265,7 +265,7 @@ const Profile = () => {
 
                     <TrashSection
                         items={trashedPlans}
-                        renderLabel={(plan) => formatPlanLabel(plan)}
+                        renderLabel={(plan) => formatPlanLabel(plan, trashedPlans)}
                         onRestore={handleRestorePlan}
                         onDeleteForever={handleDeletePlanForever}
                         className="mt-6"
@@ -276,7 +276,7 @@ const Profile = () => {
             <ConfirmDialog
                 open={!!pendingDelete}
                 title="מחיקת תוכנית"
-                message={`האם להעביר את התוכנית מתאריך ${formatPlanLabel(pendingDelete)} לפח המחזור? ניתן יהיה לשחזר אותה או למחוק אותה לצמיתות במשך 30 יום.`}
+                message={`האם להעביר את התוכנית מתאריך ${formatPlanLabel(pendingDelete, plans)} לפח המחזור? ניתן יהיה לשחזר אותה או למחוק אותה לצמיתות במשך 30 יום.`}
                 confirmLabel="מחיקה"
                 cancelLabel="ביטול"
                 loading={!!deleting}

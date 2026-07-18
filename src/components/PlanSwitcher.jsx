@@ -52,7 +52,7 @@ const PlanSwitcher = () => {
                                         className="w-full text-right px-4 py-3 hover:bg-gray-50 border-b border-gray-100 flex flex-col gap-0.5 transition"
                                     >
                                         <span className="font-semibold text-gray-800 text-sm truncate">
-                                            {formatPlanLabel(plan)}
+                                            {formatPlanLabel(plan, plans)}
                                         </span>
                                     </button>
                                 ))

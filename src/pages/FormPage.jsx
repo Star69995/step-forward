@@ -224,14 +224,17 @@ const FormPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [planId, ownerUid]);
 
-    // Autosave fires once the current values stop matching the snapshot
-    // taken right after the plan was loaded/defaulted above, so opening a
-    // plan just to look at it never triggers a write. (Not driven by
-    // react-hook-form's formState.isDirty/dirtyFields — confirmed empirically
-    // that they never update in this form even as watch() reports real
-    // "change" events with the new values, so a plain value comparison is
-    // used instead.) Debounced, and errors surface to the user instead of
-    // failing silently.
+    // The actual write to Firestore stays debounced (required — see
+    // CLAUDE.md on minimizing writes), firing once the current values stop
+    // matching the snapshot taken right after the plan was loaded/defaulted
+    // above, so opening a plan just to look at it never triggers a write.
+    // (Not driven by react-hook-form's formState.isDirty/dirtyFields —
+    // confirmed empirically that they never update in this form even as
+    // watch() reports real "change" events with the new values, so a plain
+    // value comparison is used instead.) The status shown to the user,
+    // though, updates on every keystroke (`pending`), not just once the
+    // debounced write actually goes out — otherwise typing looks like
+    // nothing is happening for the whole debounce window.
     useEffect(() => {
         const subscription = methods.watch((values) => {
             // Fields are disabled without edit rights, so this is a second,
@@ -239,6 +242,7 @@ const FormPage = () => {
             // only view — the write itself is also rejected by firestore.rules.
             if (!canEdit || JSON.stringify(values) === initialValuesRef.current) return;
 
+            setSaveStatus("pending");
             clearTimeout(saveTimeoutRef.current);
             clearTimeout(savedResetTimeoutRef.current);
             saveTimeoutRef.current = setTimeout(async () => {
@@ -439,6 +443,21 @@ const FormPage = () => {
                                 </div>
                             </div>
                         </fieldset>
+
+                        <CommentThread
+                            ownerUid={ownerUid}
+                            planId={planId}
+                            targetGoal="preparation"
+                            comments={commentsFor("preparation")}
+                            trashedComments={trashedCommentsFor("preparation")}
+                            loading={commentsLoading}
+                            onAdded={handleCommentAdded}
+                            onTrashed={handleCommentTrashed}
+                            onRestored={handleCommentRestored}
+                            onDeletedForever={handleCommentDeletedForever}
+                            isOwner={isOwner}
+                            title="הערות על ההכנה לתהליך"
+                        />
                     </CollapsibleSection>
 
                     {/* PAGE 2: GOALS */}
@@ -702,6 +721,9 @@ const FormPage = () => {
                             </Badge>
                         )}
                         <PDFButton targetId="formArea" autoTrigger={autoExport} />
+                        {saveStatus === "pending" && (
+                            <small className="text-gray-500 text-xs sm:text-sm">יש שינויים שטרם נשמרו</small>
+                        )}
                         {saveStatus === "saving" && (
                             <small className="text-gray-500 flex items-center gap-2 text-xs sm:text-sm">
                                 <Spinner size={14} />

@@ -202,7 +202,7 @@ const Providers = () => {
                                     onChange={() => togglePlan(plan.id)}
                                     className="accent-primary"
                                 />
-                                {formatPlanLabel(plan)}
+                                {formatPlanLabel(plan, plans)}
                             </label>
                         ))
                     )}

@@ -51,6 +51,17 @@ export const usePlans = (uid) => {
 // Plans have no user-chosen title — everywhere a plan needs a label in the
 // UI, it's identified by its creation date instead. Single place for that
 // formatting so every list (Profile, PlanSwitcher, RecipientPlans, Providers)
-// shows the same label.
-export const formatPlanLabel = (plan) =>
-    plan?.createdAt ? plan.createdAt.toDate().toLocaleDateString("he-IL") : "תוכנית חדשה";
+// shows the same label. When two or more plans share the same creation date,
+// pass the sibling list (allPlans) so later ones get a "(2)", "(3)"... suffix
+// in creation order — otherwise they'd be visually indistinguishable.
+export const formatPlanLabel = (plan, allPlans = []) => {
+    if (!plan?.createdAt) return "תוכנית חדשה";
+    const dateLabel = plan.createdAt.toDate().toLocaleDateString("he-IL");
+
+    const sameDay = allPlans
+        .filter((p) => p.createdAt && p.createdAt.toDate().toLocaleDateString("he-IL") === dateLabel)
+        .sort((a, b) => a.createdAt.toDate() - b.createdAt.toDate());
+    const ordinal = sameDay.findIndex((p) => p.id === plan.id) + 1;
+
+    return ordinal > 1 ? `${dateLabel} (${ordinal})` : dateLabel;
+};
