@@ -1,31 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { deleteDoc, doc } from "firebase/firestore";
+import { sendEmailVerification } from "firebase/auth";
 import { db } from "../services/firebase";
 import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { usePlans } from "../services/usePlans";
+import { usePlans, formatPlanLabel } from "../services/usePlans";
+import { softDeleteDoc, restoreDoc } from "../services/trash";
 import {
     User,
     LogOut,
     ClipboardList,
     Plus,
     Inbox,
-    Pin,
     Clock,
-    Pencil,
+    Eye,
     Trash2,
     FileDown,
+    HeartHandshake,
+    MailCheck,
+    MailWarning,
+    Maximize2,
+    Minimize2,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import TrashSection from "../components/ui/TrashSection";
+import RoleBadge from "../components/RoleBadge";
+import Badge from "../components/ui/Badge";
+import SegmentedToggle from "../components/ui/SegmentedToggle";
 
 const Profile = () => {
-    const { currentUser, logout } = useAuth();
-    const { plans, loading, setPlans } = usePlans(currentUser?.uid);
+    const { currentUser, role, logout, density, setDensity } = useAuth();
+    const { plans, trashedPlans, loading, setPlans, setTrashedPlans } = usePlans(currentUser?.uid);
     const [deleting, setDeleting] = useState(null);
     const [pendingDelete, setPendingDelete] = useState(null);
+    const [emailVerified, setEmailVerified] = useState(currentUser?.emailVerified ?? false);
+    const [sendingVerification, setSendingVerification] = useState(false);
     const navigate = useNavigate();
+
+    // currentUser.emailVerified can be stale if verification happened in a
+    // different tab/session — reload() refreshes the underlying Firebase
+    // user in place, so the local state is re-read from it afterwards.
+    useEffect(() => {
+        if (!currentUser) return;
+        currentUser.reload().then(() => setEmailVerified(currentUser.emailVerified));
+    }, [currentUser]);
+
+    const handleResendVerification = async () => {
+        setSendingVerification(true);
+        try {
+            await sendEmailVerification(currentUser);
+            toast.success("נשלח מייל אימות חדש לכתובת שלך");
+        } catch (error) {
+            if (error.code === "auth/too-many-requests") {
+                toast.error("נשלחו יותר מדי בקשות, יש להמתין מעט לפני ניסיון נוסף");
+            } else {
+                toast.error("שגיאה בשליחת מייל האימות: " + error.message);
+            }
+        } finally {
+            setSendingVerification(false);
+        }
+    };
 
     const handleDelete = async () => {
         if (!pendingDelete) return;
@@ -33,9 +69,10 @@ const Profile = () => {
 
         setDeleting(id);
         try {
-            await deleteDoc(doc(db, `users/${currentUser.uid}/plans/${id}`));
+            await softDeleteDoc(doc(db, `users/${currentUser.uid}/plans/${id}`));
             setPlans((prev) => prev.filter((p) => p.id !== id));
-            toast.success("התוכנית נמחקה בהצלחה");
+            setTrashedPlans((prev) => [...prev, { ...pendingDelete, deletedAt: { toDate: () => new Date() } }]);
+            toast.success("התוכנית הועברה לפח המחזור");
         } catch (error) {
             console.error("Error deleting plan:", error);
             toast.error("שגיאה במחיקת התוכנית");
@@ -43,6 +80,19 @@ const Profile = () => {
             setDeleting(null);
             setPendingDelete(null);
         }
+    };
+
+    const handleRestorePlan = async (plan) => {
+        await restoreDoc(doc(db, `users/${currentUser.uid}/plans/${plan.id}`));
+        setTrashedPlans((prev) => prev.filter((p) => p.id !== plan.id));
+        setPlans((prev) => [...prev, { ...plan, deletedAt: null }]);
+        toast.success("התוכנית שוחזרה בהצלחה");
+    };
+
+    const handleDeletePlanForever = async (plan) => {
+        await deleteDoc(doc(db, `users/${currentUser.uid}/plans/${plan.id}`));
+        setTrashedPlans((prev) => prev.filter((p) => p.id !== plan.id));
+        toast.success("התוכנית נמחקה לצמיתות");
     };
 
     // New plans are created lazily: no Firestore write happens until the
@@ -71,26 +121,73 @@ const Profile = () => {
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header Section */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-8">
+                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
                     <div className="flex justify-between items-start gap-4 flex-wrap">
                         <div>
                             <h2 className="flex items-center gap-2 text-3xl font-bold text-gray-800 mb-1">
                                 <User size={26} aria-hidden="true" />
                                 שלום, {currentUser?.displayName || currentUser?.email}
+                                <RoleBadge role={role} />
                             </h2>
                             <small className="text-gray-500">{currentUser?.email}</small>
+                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                {emailVerified ? (
+                                    <Badge variant="success" icon={MailCheck}>
+                                        מייל מאושר
+                                    </Badge>
+                                ) : (
+                                    <>
+                                        <Badge variant="warning" icon={MailWarning}>
+                                            מייל לא מאושר
+                                        </Badge>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            rounded="rounded-lg"
+                                            loading={sendingVerification}
+                                            loadingText="שולח..."
+                                            onClick={handleResendVerification}
+                                        >
+                                            שליחת מייל אימות מחדש
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                            <div className="mt-4 flex items-center gap-3 flex-wrap">
+                                <span className="text-sm font-semibold text-gray-700">צפיפות תצוגה</span>
+                                <SegmentedToggle
+                                    value={density}
+                                    onChange={setDensity}
+                                    options={[
+                                        { value: "spacious", label: "מרווח", icon: Maximize2 },
+                                        { value: "compact", label: "קומפקטי", icon: Minimize2 },
+                                    ]}
+                                />
+                            </div>
                         </div>
-                        <Button variant="danger" icon={LogOut} rounded="rounded-lg" onClick={logout}>
-                            התנתקות
-                        </Button>
+                        <div className="flex gap-2">
+                            {role === "recipient" && (
+                                <Button
+                                    variant="outline"
+                                    icon={HeartHandshake}
+                                    rounded="rounded-lg"
+                                    onClick={() => navigate("/providers")}
+                                >
+                                    ניהול גישה לנותני השירות שלי
+                                </Button>
+                            )}
+                            <Button variant="danger" icon={LogOut} rounded="rounded-lg" onClick={logout}>
+                                התנתקות
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
                 {/* Plans Section */}
                 <div>
                     <div className="flex justify-between items-center gap-4 mb-6 flex-wrap">
-                        <h3 className="flex items-center gap-2 text-2xl font-bold text-white">
-                            <ClipboardList size={24} aria-hidden="true" />
+                        <h3 className="flex items-center gap-2 text-2xl font-bold text-primary">
+                            <ClipboardList size={24} className="text-primary" aria-hidden="true" />
                             התוכניות השמורות
                         </h3>
                         <Button variant="success" icon={Plus} rounded="rounded-lg" onClick={handleNewPlan}>
@@ -112,7 +209,7 @@ const Profile = () => {
                             </Button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-section-gap)]">
                             {plans.map((plan) => (
                                 <div
                                     key={plan.id}
@@ -120,16 +217,10 @@ const Profile = () => {
                                 >
                                     {/* Card Header */}
                                     <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                                        <h5 className="flex items-center gap-1.5 font-bold text-gray-800 mb-2 wrap-break-word">
-                                            <Pin size={14} aria-hidden="true" />
-                                            {plan.name || "תוכנית ללא שם"}
+                                        <h5 className="flex items-center gap-1.5 font-bold text-gray-800 wrap-break-word">
+                                            <Clock size={14} aria-hidden="true" />
+                                            {formatPlanLabel(plan)}
                                         </h5>
-                                        {plan.createdAt && (
-                                            <small className="flex items-center gap-1 text-gray-500">
-                                                <Clock size={12} aria-hidden="true" />
-                                                נוצר: {plan.createdAt.toDate().toLocaleString("he-IL")}
-                                            </small>
-                                        )}
                                     </div>
 
                                     {/* Card Body */}
@@ -139,10 +230,10 @@ const Profile = () => {
                                                 variant="blue"
                                                 size="sm"
                                                 rounded="rounded-lg"
-                                                icon={Pencil}
+                                                icon={Eye}
                                                 onClick={() => openPlan(plan)}
                                             >
-                                                עריכה
+                                                הצגה
                                             </Button>
                                             <Button
                                                 variant="success"
@@ -171,13 +262,21 @@ const Profile = () => {
                             ))}
                         </div>
                     )}
+
+                    <TrashSection
+                        items={trashedPlans}
+                        renderLabel={(plan) => formatPlanLabel(plan)}
+                        onRestore={handleRestorePlan}
+                        onDeleteForever={handleDeletePlanForever}
+                        className="mt-6"
+                    />
                 </div>
             </div>
 
             <ConfirmDialog
                 open={!!pendingDelete}
                 title="מחיקת תוכנית"
-                message={`האם למחוק את התוכנית "${pendingDelete?.name || "התוכנית"}"? פעולה זו אינה הפיכה.`}
+                message={`האם להעביר את התוכנית מתאריך ${formatPlanLabel(pendingDelete)} לפח המחזור? ניתן יהיה לשחזר אותה או למחוק אותה לצמיתות במשך 30 יום.`}
                 confirmLabel="מחיקה"
                 cancelLabel="ביטול"
                 loading={!!deleting}

@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Local Firebase emulator data dump (see `npm run emulators`)
+.emulator-data
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,7 +1,165 @@
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId}/plans/{planId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Share doc for (recipientUid, request.auth.uid-as-provider). Doc ID
+    // under shares/ IS the provider's uid, so a provider looking up "my own
+    // grant" for a given recipient never needs a query.
+    function shareExists(recipientUid) {
+      return exists(/databases/$(database)/documents/users/$(recipientUid)/shares/$(request.auth.uid));
+    }
+
+    function shareData(recipientUid) {
+      return get(/databases/$(database)/documents/users/$(recipientUid)/shares/$(request.auth.uid)).data;
+    }
+
+    // A revoked-but-trashed share (deletedAt set) must be treated exactly
+    // like a missing one — revocation has to take effect immediately, not
+    // only after the 30-day trash window elapses. See useShares.js's
+    // removeShare, which soft-deletes instead of deleting outright.
+    function shareActive(recipientUid) {
+      return shareExists(recipientUid) &&
+        (!('deletedAt' in shareData(recipientUid)) || shareData(recipientUid).deletedAt == null);
+    }
+
+    function shareCoversPlan(share, planId) {
+      return share.scope == 'all'
+        || (share.scope == 'selected' && share.planIds is list && planId in share.planIds);
+    }
+
+    // Any active grant (view or edit) — used for plan reads and comments.
+    function canAccessPlan(recipientUid, planId) {
+      return isSignedIn() && shareActive(recipientUid) && shareCoversPlan(shareData(recipientUid), planId);
+    }
+
+    // Edit-permission grant only — used for plan writes.
+    function canEditPlan(recipientUid, planId) {
+      return isSignedIn() && shareActive(recipientUid)
+        && shareData(recipientUid).permission == 'edit'
+        && shareCoversPlan(shareData(recipientUid), planId);
+    }
+
+    // ---------------------------------------------------------------
+    // users/{uid} — profile + role, created once at signup.
+    // ---------------------------------------------------------------
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role in ['provider', 'recipient']
+        && request.resource.data.email == request.auth.token.email;
+
+      // Role is immutable after signup — no self-service role switch.
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // emailIndex/{lowercasedEmail} — exact-match lookup only, never list.
+    // Document ID AND stored email must equal the caller's OWN verified
+    // auth email — this is what prevents one account from squatting on
+    // another person's email and hijacking shares meant for them.
+    // ---------------------------------------------------------------
+    match /emailIndex/{emailId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.uid == request.resource.data.uid
+        && request.auth.token.email is string
+        && request.auth.token.email.lower() == emailId
+        && request.resource.data.email.lower() == emailId
+        && request.resource.data.role in ['provider', 'recipient'];
+
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    // ---------------------------------------------------------------
+    // users/{recipientUid}/plans/{planId}
+    // ---------------------------------------------------------------
+    match /users/{recipientUid}/plans/{planId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == recipientUid || canAccessPlan(recipientUid, planId));
+
+      // create/update cover soft-delete (setting deletedAt) and restore
+      // (clearing it) the same as any other field change — same grant as
+      // before. A real delete is only allowed once the plan is already
+      // trashed, and only by the owning recipient, never an edit-grant
+      // provider — see usePlans.js/Profile.jsx, which soft-deletes first.
+      allow create, update: if isSignedIn()
+        && (request.auth.uid == recipientUid || canEditPlan(recipientUid, planId));
+
+      allow delete: if isSignedIn()
+        && request.auth.uid == recipientUid
+        && resource.data.deletedAt != null;
+
+      // ---------------------------------------------------------------
+      // .../plans/{planId}/comments/{commentId}
+      // Any accessor (owner, view-grant, or edit-grant provider) may
+      // read/create; only the recipient or the comment's own author may
+      // edit it (including soft-delete/restore). A real delete additionally
+      // requires the comment to already be trashed.
+      // ---------------------------------------------------------------
+      match /comments/{commentId} {
+        allow read: if isSignedIn()
+          && (request.auth.uid == recipientUid || canAccessPlan(recipientUid, planId));
+
+        allow create: if isSignedIn()
+          && (request.auth.uid == recipientUid || canAccessPlan(recipientUid, planId))
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.targetGoal in [null, 'one', 'two', 'three'];
+
+        allow update: if isSignedIn()
+          && (request.auth.uid == recipientUid || resource.data.authorUid == request.auth.uid);
+
+        allow delete: if isSignedIn()
+          && (request.auth.uid == recipientUid || resource.data.authorUid == request.auth.uid)
+          && resource.data.deletedAt != null;
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // users/{recipientUid}/shares/{providerUid}
+    // Recipient-owned grant list. Doc ID == providerUid, enforced to also
+    // equal the providerUid field so the collection-group rule below and
+    // the path-based provider self-read stay consistent with each other.
+    // ---------------------------------------------------------------
+    match /users/{recipientUid}/shares/{providerUid} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == recipientUid || request.auth.uid == providerUid);
+
+      // create/update (never delete, which has no request.resource) are
+      // validated against the full grant shape.
+      allow create, update: if isSignedIn() && request.auth.uid == recipientUid
+        && request.resource.data.providerUid == providerUid
+        && request.resource.data.scope in ['all', 'selected']
+        && request.resource.data.permission in ['view', 'edit']
+        && (request.resource.data.scope == 'all' || request.resource.data.planIds is list);
+
+      // Revocation itself is a soft-delete (update, above) so it's always
+      // available to the owning recipient independent of the grant's
+      // current shape. A real delete additionally requires the share to
+      // already be trashed — see useShares.js's removeShare/deleteShareForever.
+      allow delete: if isSignedIn() && request.auth.uid == recipientUid && resource.data.deletedAt != null;
+    }
+
+    // A plain (non-recursive) `match` block, however specific, is only ever
+    // applied to documents reached by their exact literal path — it does
+    // NOT get consulted for a collectionGroup() query, which needs its own
+    // rule declared with the {path=**} recursive wildcard. Confirmed via
+    // the local emulator: without this block, useSharedWithMe.js's
+    // collectionGroup('shares') query was rejected outright with "No
+    // matching allow statements", even though the block above already
+    // covers the equivalent direct-path read.
+    match /{path=**}/shares/{providerUid} {
+      allow read: if isSignedIn() && resource.data.providerUid == request.auth.uid;
     }
   }
 }

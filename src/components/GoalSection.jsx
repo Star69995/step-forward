@@ -5,6 +5,7 @@ import Goal from "./Goal";
 import InfoHint from "./ui/InfoHint";
 import CollapsibleSection from "./ui/CollapsibleSection";
 import CompletionCheck from "./ui/CompletionCheck";
+import CommentThread from "./CommentThread";
 // Theme colors now live solely in the `@theme` block in index.css (Tailwind
 // v4) — read them via their CSS custom properties instead of duplicating
 // the values here, so that stays the single source of truth.
@@ -23,7 +24,26 @@ const BADGE_COLORS = {
 // collapsible=false renders the goal as a static card with no chevron/toggle
 // of its own — used when a parent groups several GoalSections under one
 // shared collapse control (see FormPage.jsx's desktop short-goals layout).
-const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode = false, collapsible = true }) => {
+const GoalSection = ({
+    title,
+    baseName,
+    index,
+    badgeColor = "primary",
+    viewMode = false,
+    canEdit = true,
+    collapsible = true,
+    ownerUid,
+    planId,
+    goalKey,
+    comments,
+    trashedComments,
+    commentsLoading,
+    onCommentAdded,
+    onCommentTrashed,
+    onCommentRestored,
+    onCommentDeletedForever,
+    isOwner,
+}) => {
     const { register, watch, setValue } = useFormContext();
     const accent = BADGE_COLORS[badgeColor] || BADGE_COLORS.primary;
 
@@ -46,7 +66,7 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
     const content = (
         <>
             <fieldset disabled={viewMode} className="border-0 min-w-0">
-                <div className="mb-6">
+                <div className="mb-[var(--space-section-gap)]">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
                         <FileText size={16} aria-hidden="true" />
                         תיאור המטרה
@@ -55,13 +75,13 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
                         {...register(`${baseName}.description`)}
                         rows={3}
                         placeholder="יש לתאר את המטרה בפירוט"
-                        className="accent-field w-full px-4 py-3 rounded-lg bg-gray-50 text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                        className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-gray-50 text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
                         style={{ "--accent": accent, lineHeight: "1.6", resize: "vertical" }}
                     />
                 </div>
             </fieldset>
 
-            <div className="mb-6 pb-6 border-b border-gray-200/70">
+            <div className="mb-[var(--space-section-gap)] pb-[var(--space-section-gap)] border-b border-gray-200/70">
                 <CompletionCheck
                     checked={!!done}
                     onCheckedChange={(val) => setValue(doneField, val, { shouldDirty: true })}
@@ -69,7 +89,7 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
                     onDateChange={(val) => setValue(doneDateField, val, { shouldDirty: true })}
                     color={accent}
                     label="המטרה הושגה"
-                    disabled={!viewMode}
+                    disabled={!viewMode || !canEdit}
                 />
             </div>
 
@@ -82,16 +102,31 @@ const GoalSection = ({ title, baseName, index, badgeColor = "primary", viewMode 
                 </label>
 
                 <div>
-                    <Goal baseName={baseName} index={1} color={accent} viewMode={viewMode} />
-                    <Goal baseName={baseName} index={2} color={accent} viewMode={viewMode} />
+                    <Goal baseName={baseName} index={1} color={accent} viewMode={viewMode} canEdit={canEdit} />
+                    <Goal baseName={baseName} index={2} color={accent} viewMode={viewMode} canEdit={canEdit} />
                 </div>
             </div>
+
+            <CommentThread
+                ownerUid={ownerUid}
+                planId={planId}
+                targetGoal={goalKey}
+                comments={comments}
+                trashedComments={trashedComments}
+                loading={commentsLoading}
+                onAdded={onCommentAdded}
+                onTrashed={onCommentTrashed}
+                onRestored={onCommentRestored}
+                onDeletedForever={onCommentDeletedForever}
+                isOwner={isOwner}
+                title="הערות על המטרה הזו"
+            />
         </>
     );
 
     if (!collapsible) {
         return (
-            <div className="pdf-avoid-break bg-white rounded-2xl shadow-xs p-4 sm:p-6 min-w-0">
+            <div className="pdf-avoid-break bg-white rounded-2xl shadow-xs p-4 sm:p-[var(--space-card-pad)] min-w-0">
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <span className="flex items-center gap-2 text-lg font-bold min-w-0" style={{ color: accent }}>
                         <span className="truncate">{title || `מטרה לטווח קצר #${index}`}</span>

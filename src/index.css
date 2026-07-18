@@ -13,6 +13,36 @@
   --color-headerTo: #764ba2;
 
   --font-rubik: Rubik, sans-serif;
+
+  /* Display-density tokens — spacious values (default). Overridden for
+   compact mode by :root[data-density="compact"] below. Consumed via
+   Tailwind arbitrary-value syntax (e.g. p-[var(--space-card-pad)]) since
+   these are custom names outside the color/font namespaces that
+   auto-generate utilities. */
+  --space-card-pad: 1.5rem;
+  --space-hero-pad: 2rem;
+  --space-section-gap: 1.5rem;
+  --space-field-full-x: 1rem;
+  --space-field-full-y: 0.75rem;
+  --space-field-dense-y: 0.5rem;
+  --space-btn-x: 1.5rem;
+  --space-btn-y: 0.75rem;
+}
+
+/* Compact display density: a real minimum — deliberately tight, not just
+ "moderately less spacious". Set once on <html data-density> by AuthContext
+ (from userProfile.density), never decided per-component. Higher specificity
+ than the plain :root the @theme block emits, so it always wins without
+ !important. */
+:root[data-density="compact"] {
+  --space-card-pad: 0.75rem;
+  --space-hero-pad: 1rem;
+  --space-section-gap: 0.5rem;
+  --space-field-full-x: 0.625rem;
+  --space-field-full-y: 0.25rem;
+  --space-field-dense-y: 0.25rem;
+  --space-btn-x: 0.875rem;
+  --space-btn-y: 0.375rem;
 }
 
 /*

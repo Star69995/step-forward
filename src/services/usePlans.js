@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
+import { splitByTrash, purgeExpired } from "./trash";
 
 // Single source for "fetch a user's saved plans" — used by the profile
 // list and the header's plan switcher, so there's one place that defines
 // how plans are read and sorted instead of two separate Firestore queries.
+// Trashed plans (deletedAt set) are split out separately rather than
+// filtered server-side, since the whole collection is already fetched
+// unfiltered today and is small (one user's own plans).
 export const usePlans = (uid) => {
     const [plans, setPlans] = useState([]);
+    const [trashedPlans, setTrashedPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshIndex, setRefreshIndex] = useState(0);
 
@@ -23,10 +28,13 @@ export const usePlans = (uid) => {
             plansData.sort(
                 (a, b) => (b.createdAt?.toDate() || new Date(0)) - (a.createdAt?.toDate() || new Date(0))
             );
+            const { active, trashed } = splitByTrash(plansData);
             if (!cancelled) {
-                setPlans(plansData);
+                setPlans(active);
+                setTrashedPlans(trashed);
                 setLoading(false);
             }
+            purgeExpired(trashed, (plan) => doc(db, `users/${uid}/plans/${plan.id}`));
         };
         fetchPlans();
 
@@ -37,5 +45,12 @@ export const usePlans = (uid) => {
 
     const refetch = useCallback(() => setRefreshIndex((i) => i + 1), []);
 
-    return { plans, loading, refetch, setPlans };
+    return { plans, trashedPlans, loading, refetch, setPlans, setTrashedPlans };
 };
+
+// Plans have no user-chosen title — everywhere a plan needs a label in the
+// UI, it's identified by its creation date instead. Single place for that
+// formatting so every list (Profile, PlanSwitcher, RecipientPlans, Providers)
+// shows the same label.
+export const formatPlanLabel = (plan) =>
+    plan?.createdAt ? plan.createdAt.toDate().toLocaleDateString("he-IL") : "תוכנית חדשה";

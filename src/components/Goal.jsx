@@ -12,7 +12,7 @@ const colors = { primary: "var(--color-primary)" };
 // (viewMode=false) the target's own content is editable but progress can't
 // be marked yet; once reviewing an existing plan (viewMode=true) the content
 // locks and only the completion checkbox/date stay live — see FormPage.jsx.
-const Goal = ({ baseName, index, color = colors.primary, viewMode = false }) => {
+const Goal = ({ baseName, index, color = colors.primary, viewMode = false, canEdit = true }) => {
     const { register, watch, setValue } = useFormContext();
 
     const doneField = `${baseName}.target${index}.done`;
@@ -39,7 +39,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false }) => 
             </div>
 
             <fieldset disabled={viewMode} className="border-0 min-w-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     {/* Goal Text Input */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
@@ -50,7 +50,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false }) => 
                             type="text"
                             {...register(`${baseName}.target${index}.text`)}
                             placeholder={`תאר את היעד #${index}`}
-                            className="accent-field w-full px-4 py-3 rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
                             style={{ "--accent": color }}
                         />
                     </div>
@@ -64,7 +64,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false }) => 
                         <input
                             type="date"
                             {...register(`${baseName}.target${index}.endDate`)}
-                            className="accent-field w-full px-4 py-3 rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
                             style={{ "--accent": color }}
                         />
                     </div>
@@ -83,7 +83,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false }) => 
                     onDateChange={(val) => setValue(doneDateField, val, { shouldDirty: true })}
                     color={color}
                     label="היעד הושלם"
-                    disabled={!viewMode}
+                    disabled={!viewMode || !canEdit}
                 />
             </div>
         </div>

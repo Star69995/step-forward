@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderOpen } from "lucide-react";
+import { Users } from "lucide-react";
 import { useAuth } from "../context/useAuth";
-import { usePlans, formatPlanLabel } from "../services/usePlans";
+import { useSharedWithMe } from "../services/useSharedWithMe";
 
-// Lets the user jump directly to any of their saved plans from wherever
-// they are, instead of always going back through the profile page first.
-const PlanSwitcher = () => {
+// Provider-side counterpart to PlanSwitcher — lets a provider jump directly
+// to any recipient who has shared with them, from wherever they are.
+const ProviderSwitcher = () => {
     const { currentUser } = useAuth();
-    const { plans, loading } = usePlans(currentUser?.uid);
+    const { recipients, loading } = useSharedWithMe(currentUser?.uid);
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
     if (!currentUser) return null;
 
-    const openPlan = (plan) => {
+    const openRecipient = (recipient) => {
         setOpen(false);
-        navigate(`/form?planId=${plan.id}`, { state: { planData: plan } });
+        navigate(`/recipients/${recipient.recipientUid}`);
     };
 
     return (
@@ -27,8 +27,8 @@ const PlanSwitcher = () => {
                 aria-expanded={open}
                 className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 bg-white/15 text-white border-2 border-white/40 hover:bg-white/25 hover:border-white"
             >
-                <FolderOpen size={16} aria-hidden="true" />
-                התוכניות שלי
+                <Users size={16} aria-hidden="true" />
+                מקבלי שירות
             </button>
 
             {open && (
@@ -41,33 +41,26 @@ const PlanSwitcher = () => {
                         <div className="max-h-72 overflow-y-auto">
                             {loading ? (
                                 <div className="p-4 text-center text-gray-500 text-sm">טוען...</div>
-                            ) : plans.length === 0 ? (
-                                <div className="p-4 text-center text-gray-500 text-sm">אין עדיין תוכניות</div>
+                            ) : recipients.length === 0 ? (
+                                <div className="p-4 text-center text-gray-500 text-sm">
+                                    אין עדיין מקבלי שירות ששיתפו איתך
+                                </div>
                             ) : (
-                                plans.map((plan) => (
+                                recipients.map((recipient) => (
                                     <button
-                                        key={plan.id}
+                                        key={recipient.recipientUid}
                                         type="button"
-                                        onClick={() => openPlan(plan)}
+                                        onClick={() => openRecipient(recipient)}
                                         className="w-full text-right px-4 py-3 hover:bg-gray-50 border-b border-gray-100 flex flex-col gap-0.5 transition"
                                     >
                                         <span className="font-semibold text-gray-800 text-sm truncate">
-                                            {formatPlanLabel(plan)}
+                                            {recipient.recipientDisplayName || recipient.recipientEmail}
                                         </span>
+                                        <span className="text-xs text-gray-500 truncate">{recipient.recipientEmail}</span>
                                     </button>
                                 ))
                             )}
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setOpen(false);
-                                navigate("/profile");
-                            }}
-                            className="w-full text-center px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-gray-50 transition"
-                        >
-                            כל התוכניות
-                        </button>
                     </div>
                 </>
             )}
@@ -75,4 +68,4 @@ const PlanSwitcher = () => {
     );
 };
 
-export default PlanSwitcher;
+export default ProviderSwitcher;

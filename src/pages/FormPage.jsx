@@ -3,18 +3,21 @@ import { useForm, FormProvider } from "react-hook-form";
 import { useAuth } from "../context/useAuth";
 import FormSection from "../components/FormSection";
 import PDFButton from "../components/PDFButton";
-import CloudSaveButton from "../components/CloudSaveButton";
 import { savePlan } from "../services/savePlan";
 import { useLocation, useNavigate } from "react-router-dom";
 import GoalSection from "../components/GoalSection";
 import useMediaQuery from "../services/useMediaQuery";
 import { loadPlan } from "../services/loadPlan";
+import { fetchShare } from "../services/useShares";
+import { useComments } from "../services/useComments";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import Spinner from "../components/ui/Spinner";
 import CollapsibleSection from "../components/ui/CollapsibleSection";
 import InfoHint from "../components/ui/InfoHint";
 import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import CommentThread from "../components/CommentThread";
 import {
     Footprints,
     ClipboardList,
@@ -35,12 +38,15 @@ import {
     Medal,
     Eye,
     Pencil,
+    MessageSquare,
+    HeartHandshake,
+    AlertCircle,
 } from "lucide-react";
 
 const FormPage = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, role } = useAuth();
     const methods = useForm();
-    const { setValue, getValues, formState } = methods;
+    const { setValue, getValues } = methods;
     const location = useLocation();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
@@ -49,15 +55,94 @@ const FormPage = () => {
     const passedPlanData = location.state?.planData;
     const autoExport = location.state?.autoExport;
 
+    // A provider opening a recipient's plan (via RecipientPlans) carries the
+    // recipient's uid in ownerUid — everything below reads/writes that
+    // owner's document, not the signed-in user's own.
+    const ownerUid = queryParams.get("ownerUid") || currentUser.uid;
+    const isOwner = ownerUid === currentUser.uid;
+    const ownerName = location.state?.ownerName;
+
     const [planId] = useState(() => (isNewPlan ? uuidv4() : planParamId));
     const [isLoading, setIsLoading] = useState(!isNewPlan && !passedPlanData);
-    const [isSaving, setIsSaving] = useState(false);
+    // "idle" (nothing pending), "saving", "saved" (last save succeeded) or
+    // "error" (last save failed) — driven entirely by our own savePlan calls
+    // below, not by react-hook-form's formState.isDirty/dirtyFields, which
+    // never actually update in this form (confirmed empirically: typing into
+    // a field fires watch() with the new value every time, but isDirty and
+    // dirtyFields stay stuck at false/{} regardless).
+    const [saveStatus, setSaveStatus] = useState("idle");
     const saveTimeoutRef = useRef(null);
+    // Clears a "saved" checkmark back to idle a few seconds after it shows,
+    // so it doesn't just sit there forever once nothing is actually pending.
+    const savedResetTimeoutRef = useRef(null);
+    // Snapshot of the form's values right after they were loaded/defaulted,
+    // used instead of isDirty to detect a real user edit (see above).
+    const initialValuesRef = useRef(null);
+
+    // The fixed action bar's content wraps onto more lines on a narrow phone
+    // (more buttons than fit in one row), so its real height isn't a fixed
+    // number — measure it and use that for the content's bottom padding
+    // instead of guessing a static value that could still get overlapped.
+    const actionBarRef = useRef(null);
+    const [actionBarHeight, setActionBarHeight] = useState(0);
+    useEffect(() => {
+        const el = actionBarRef.current;
+        if (!el) return;
+        const observer = new ResizeObserver(([entry]) => setActionBarHeight(entry.contentRect.height));
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     // A new plan opens ready to fill in; an existing plan opens locked for
     // review, with only the goal/target completion checkboxes live — see
     // GoalSection.jsx/Goal.jsx. "עריכה" unlocks the plan's content again.
     const [viewMode, setViewMode] = useState(!isNewPlan);
+
+    // The owner always has full access; a provider's actual permission is
+    // looked up fresh (not trusted from navigation state) so a revoked or
+    // downgraded grant takes effect immediately rather than after a refresh.
+    const [providerPermission, setProviderPermission] = useState(null);
+    useEffect(() => {
+        if (isOwner) return;
+        let cancelled = false;
+        fetchShare(ownerUid, currentUser.uid).then((share) => {
+            if (!cancelled) setProviderPermission(share?.permission || null);
+        });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ownerUid, isOwner]);
+
+    const canEdit = isOwner || providerPermission === "edit";
+    // A view-only provider always sees the locked/review layout — the
+    // edit/view toggle itself only exists for someone allowed to edit.
+    const effectiveViewMode = canEdit ? viewMode : true;
+
+    // All of the plan's comments (whole-plan + every goal), active and
+    // trashed, are fetched once here and filtered by targetGoal for each
+    // CommentThread instance below.
+    const {
+        comments,
+        trashedComments,
+        loading: commentsLoading,
+        setComments,
+        setTrashedComments,
+    } = useComments(ownerUid, planId);
+    const commentsFor = (goalKey) => comments.filter((c) => (c.targetGoal || null) === (goalKey || null));
+    const trashedCommentsFor = (goalKey) =>
+        trashedComments.filter((c) => (c.targetGoal || null) === (goalKey || null));
+    const handleCommentAdded = (comment) => setComments((prev) => [...prev, comment]);
+    const handleCommentTrashed = (comment) => {
+        setComments((prev) => prev.filter((c) => c.id !== comment.id));
+        setTrashedComments((prev) => [...prev, { ...comment, deletedAt: { toDate: () => new Date() } }]);
+    };
+    const handleCommentRestored = (comment) => {
+        setTrashedComments((prev) => prev.filter((c) => c.id !== comment.id));
+        setComments((prev) => [...prev, { ...comment, deletedAt: null }]);
+    };
+    const handleCommentDeletedForever = (commentId) =>
+        setTrashedComments((prev) => prev.filter((c) => c.id !== commentId));
 
     // Matches the "lg" breakpoint used below for the short-goals grid — only
     // at that width do all three cards sit in one row, which is when a single
@@ -94,15 +179,23 @@ const FormPage = () => {
         if (passedPlanData) {
             // Already fetched once for the profile list — reuse it instead of a second read.
             applyData(passedPlanData);
+            initialValuesRef.current = JSON.stringify(getValues());
+            setSaveStatus("idle");
             setIsLoading(false);
             return;
         }
 
         if (isNewPlan) {
-            // Give a new plan a head start: the account name and today's date,
-            // both left fully editable in case they don't fit.
-            setValue("name", currentUser.displayName || currentUser.email || "");
+            // Give a new plan a head start: today's date, left fully editable
+            // in case it doesn't fit. The account name is only a sensible
+            // guess for the recipient themselves — a provider's own name is
+            // never the plan owner's name, so it's left blank for them.
+            if (role === "recipient") {
+                setValue("name", currentUser.displayName || currentUser.email || "");
+            }
             setValue("endDate", new Date().toISOString().split("T")[0]);
+            initialValuesRef.current = JSON.stringify(getValues());
+            setSaveStatus("idle");
             setIsLoading(false);
             return;
         }
@@ -110,10 +203,18 @@ const FormPage = () => {
         let cancelled = false;
         const fetchSavedPlan = async () => {
             setIsLoading(true);
-            const data = await loadPlan(currentUser.uid, planId);
-            if (!cancelled) {
+            try {
+                const data = await loadPlan(ownerUid, planId);
+                if (cancelled) return;
                 if (data) applyData(data);
+                initialValuesRef.current = JSON.stringify(getValues());
+                setSaveStatus("idle");
                 setIsLoading(false);
+            } catch (error) {
+                console.error(error);
+                if (cancelled) return;
+                toast.error("אין (או שאין יותר) הרשאה לצפייה בתוכנית זו");
+                navigate(isOwner ? "/profile" : "/form", { replace: true });
             }
         };
         fetchSavedPlan();
@@ -121,26 +222,39 @@ const FormPage = () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [planId]);
+    }, [planId, ownerUid]);
 
-    // Autosave only fires once the user has actually changed something
-    // (formState.isDirty), so opening a plan just to look at it never
-    // triggers a write. Debounced, and errors surface to the user instead
-    // of failing silently.
+    // Autosave fires once the current values stop matching the snapshot
+    // taken right after the plan was loaded/defaulted above, so opening a
+    // plan just to look at it never triggers a write. (Not driven by
+    // react-hook-form's formState.isDirty/dirtyFields — confirmed empirically
+    // that they never update in this form even as watch() reports real
+    // "change" events with the new values, so a plain value comparison is
+    // used instead.) Debounced, and errors surface to the user instead of
+    // failing silently.
     useEffect(() => {
-        const subscription = methods.watch(() => {
-            if (!formState.isDirty) return;
+        const subscription = methods.watch((values) => {
+            // Fields are disabled without edit rights, so this is a second,
+            // defense-in-depth line against writing a plan the user can
+            // only view — the write itself is also rejected by firestore.rules.
+            if (!canEdit || JSON.stringify(values) === initialValuesRef.current) return;
 
             clearTimeout(saveTimeoutRef.current);
+            clearTimeout(savedResetTimeoutRef.current);
             saveTimeoutRef.current = setTimeout(async () => {
-                setIsSaving(true);
+                setSaveStatus("saving");
                 try {
-                    await savePlan(currentUser.uid, getValues(), planId);
+                    await savePlan(ownerUid, getValues(), planId);
+                    setSaveStatus("saved");
+                    savedResetTimeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
                 } catch (error) {
                     console.error(error);
-                    toast.error("שגיאה בשמירה האוטומטית, מומלץ לשמור ידנית");
-                } finally {
-                    setIsSaving(false);
+                    setSaveStatus("error");
+                    toast.error(
+                        !isOwner
+                            ? "שגיאה בשמירה — ייתכן שההרשאה לעריכת תוכנית זו בוטלה"
+                            : "שגיאה בשמירה האוטומטית, מומלץ לשמור ידנית"
+                    );
                 }
             }, 2000);
         });
@@ -148,6 +262,7 @@ const FormPage = () => {
         return () => {
             subscription.unsubscribe();
             clearTimeout(saveTimeoutRef.current);
+            clearTimeout(savedResetTimeoutRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [planId]);
@@ -174,25 +289,37 @@ const FormPage = () => {
                     </div>
                 </div>
 
-                <div className="max-w-6xl mx-auto px-4">
-                    {/* VIEW/EDIT MODE TOGGLE */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pdf-hidden">
-                        <span className="flex items-center gap-2 text-sm font-semibold text-gray-600">
-                            {viewMode ? <Eye size={16} aria-hidden="true" /> : <Pencil size={16} aria-hidden="true" />}
-                            {viewMode ? "מצב תצוגה — תוכן התוכנית נעול, ניתן לסמן התקדמות" : "מצב עריכה — ניתן לערוך את תוכן התוכנית"}
-                        </span>
-                        <Button
-                            variant={viewMode ? "primary" : "outline"}
-                            icon={viewMode ? Pencil : Eye}
-                            onClick={() => setViewMode((v) => !v)}
-                        >
-                            {viewMode ? "מעבר לעריכת התוכנית" : "סיום עריכה וחזרה לתצוגה"}
-                        </Button>
+                <div
+                    className="max-w-6xl mx-auto px-4 pb-24 sm:pb-20"
+                    style={actionBarHeight ? { paddingBottom: `${actionBarHeight + 16}px` } : undefined}
+                >
+                    {!isOwner && (
+                        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-blue-50 border-r-4 border-blue-400 pdf-hidden">
+                            <Users size={16} className="text-blue-700 shrink-0" aria-hidden="true" />
+                            <span className="text-sm text-blue-800">
+                                {ownerName ? `צפייה בתוכנית של ${ownerName}` : "צפייה בתוכנית משותפת"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* VIEW/EDIT MODE INDICATOR — the actual controls (access
+                     management, edit/view toggle) live in the fixed action bar
+                     at the bottom so they're reachable from anywhere on the
+                     page, not just when scrolled to the top. */}
+                    <div className="flex items-center gap-2 mb-6 pdf-hidden text-sm font-semibold text-gray-600">
+                        {effectiveViewMode ? (
+                            <Eye size={16} aria-hidden="true" />
+                        ) : (
+                            <Pencil size={16} aria-hidden="true" />
+                        )}
+                        {effectiveViewMode
+                            ? "מצב תצוגה — תוכן התוכנית נעול, ניתן לסמן התקדמות"
+                            : "מצב עריכה — ניתן לערוך את תוכן התוכנית"}
                     </div>
 
                     {/* GENERAL INFO SECTION */}
                     <CollapsibleSection title="פרטי התוכנית" icon={ClipboardList} accent="primary">
-                        <fieldset disabled={viewMode} className="border-0 min-w-0">
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
                                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
@@ -209,7 +336,7 @@ const FormPage = () => {
                                     <input
                                         type="date"
                                         {...methods.register("startDate")}
-                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
                                     />
                                 </div>
                                 <div>
@@ -220,7 +347,7 @@ const FormPage = () => {
                                     <input
                                         type="date"
                                         {...methods.register("endDate")}
-                                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
                                     />
                                 </div>
                                 <div>
@@ -236,7 +363,7 @@ const FormPage = () => {
 
                     {/* PAGE 1: PREPARATION */}
                     <CollapsibleSection title="הכנה לתהליך" icon={Rocket} accent="success">
-                        <fieldset disabled={viewMode} className="border-0 min-w-0">
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div>
                                     <div className="flex items-center mb-2 gap-2">
@@ -316,7 +443,7 @@ const FormPage = () => {
 
                     {/* PAGE 2: GOALS */}
                     <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning">
-                        <fieldset disabled={viewMode} className="border-0 min-w-0">
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                                 <strong className="flex items-center gap-2 text-blue-700 mb-2">
                                     <MapPin size={18} aria-hidden="true" />
@@ -358,8 +485,20 @@ const FormPage = () => {
                                         baseName="shortGoals.one"
                                         index={1}
                                         badgeColor="primary"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
                                         collapsible={false}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="one"
+                                        comments={commentsFor("one")}
+                                        trashedComments={trashedCommentsFor("one")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                     <GoalSection
                                         title={
@@ -371,8 +510,20 @@ const FormPage = () => {
                                         baseName="shortGoals.two"
                                         index={2}
                                         badgeColor="info"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
                                         collapsible={false}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="two"
+                                        comments={commentsFor("two")}
+                                        trashedComments={trashedCommentsFor("two")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                     <GoalSection
                                         title={
@@ -384,8 +535,20 @@ const FormPage = () => {
                                         baseName="shortGoals.three"
                                         index={3}
                                         badgeColor="success"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
                                         collapsible={false}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="three"
+                                        comments={commentsFor("three")}
+                                        trashedComments={trashedCommentsFor("three")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                 </div>
                             </CollapsibleSection>
@@ -409,7 +572,19 @@ const FormPage = () => {
                                         baseName="shortGoals.one"
                                         index={1}
                                         badgeColor="primary"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="one"
+                                        comments={commentsFor("one")}
+                                        trashedComments={trashedCommentsFor("one")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                     <GoalSection
                                         title={
@@ -421,7 +596,19 @@ const FormPage = () => {
                                         baseName="shortGoals.two"
                                         index={2}
                                         badgeColor="info"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="two"
+                                        comments={commentsFor("two")}
+                                        trashedComments={trashedCommentsFor("two")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                     <GoalSection
                                         title={
@@ -433,26 +620,105 @@ const FormPage = () => {
                                         baseName="shortGoals.three"
                                         index={3}
                                         badgeColor="success"
-                                        viewMode={viewMode}
+                                        viewMode={effectiveViewMode}
+                                        canEdit={canEdit}
+                                        ownerUid={ownerUid}
+                                        planId={planId}
+                                        goalKey="three"
+                                        comments={commentsFor("three")}
+                                        trashedComments={trashedCommentsFor("three")}
+                                        commentsLoading={commentsLoading}
+                                        onCommentAdded={handleCommentAdded}
+                                        onCommentTrashed={handleCommentTrashed}
+                                        onCommentRestored={handleCommentRestored}
+                                        onCommentDeletedForever={handleCommentDeletedForever}
+                                        isOwner={isOwner}
                                     />
                                 </div>
                             </>
                         )}
                     </CollapsibleSection>
 
-                    {/* ACTION BUTTONS */}
-                    <div className="text-center mb-8 pdf-hidden">
-                        <div className="flex flex-wrap gap-3 justify-center">
-                            <CloudSaveButton getData={getValues} planId={planId} isSaving={isSaving} />
-                            <PDFButton targetId="formArea" autoTrigger={autoExport} />
-                        </div>
-                        {isSaving && (
-                            <div className="mt-3">
-                                <small className="text-gray-500 flex items-center justify-center gap-2">
-                                    <Spinner size={14} />
-                                    שמירה...
-                                </small>
-                            </div>
+                    {/* PLAN-LEVEL COMMENTS */}
+                    <CollapsibleSection
+                        title="הערות ועדכוני התקדמות"
+                        icon={MessageSquare}
+                        accent="info"
+                        defaultOpen
+                        className="pdf-hidden"
+                    >
+                        <CommentThread
+                            ownerUid={ownerUid}
+                            planId={planId}
+                            targetGoal={null}
+                            comments={commentsFor(null)}
+                            trashedComments={trashedCommentsFor(null)}
+                            loading={commentsLoading}
+                            onAdded={handleCommentAdded}
+                            onTrashed={handleCommentTrashed}
+                            onRestored={handleCommentRestored}
+                            onDeletedForever={handleCommentDeletedForever}
+                            isOwner={isOwner}
+                            title="הערות על התוכנית כולה"
+                        />
+                    </CollapsibleSection>
+
+                </div>
+
+                {/* ACTION BAR — fixed to the viewport so the plan's controls
+                 (access management, edit/view toggle, PDF export) stay within
+                 reach while filling a long form, instead of only appearing
+                 once scrolled all the way to their spot. A page with a taller
+                 Header (e.g. narrow phones, where it wraps to more than one
+                 line) just pushes this bar's own content to wrap too — it
+                 isn't anchored to the Header's height. */}
+                <div
+                    ref={actionBarRef}
+                    className="fixed inset-x-0 bottom-0 z-30 pdf-hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+                >
+                    <div className="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+                        {isOwner && role === "recipient" && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                icon={HeartHandshake}
+                                onClick={() => navigate("/providers")}
+                            >
+                                ניהול גישה לנותני השירות שלי
+                            </Button>
+                        )}
+                        {canEdit ? (
+                            <Button
+                                variant={viewMode ? "primary" : "outline"}
+                                size="sm"
+                                icon={viewMode ? Pencil : Eye}
+                                onClick={() => setViewMode((v) => !v)}
+                            >
+                                {viewMode ? "מעבר לעריכת התוכנית" : "סיום עריכה וחזרה לתצוגה"}
+                            </Button>
+                        ) : (
+                            <Badge variant="info" icon={Eye}>
+                                צפייה בלבד — אין הרשאת עריכה
+                            </Badge>
+                        )}
+                        <PDFButton targetId="formArea" autoTrigger={autoExport} />
+                        {saveStatus === "saving" && (
+                            <small className="text-gray-500 flex items-center gap-2 text-xs sm:text-sm">
+                                <Spinner size={14} />
+                                שומר...
+                            </small>
+                        )}
+                        {saveStatus === "saved" && (
+                            <small className="text-success flex items-center gap-1.5 text-xs sm:text-sm">
+                                <CheckCircle2 size={14} aria-hidden="true" />
+                                נשמר
+                            </small>
+                        )}
+                        {saveStatus === "error" && (
+                            <small className="text-danger flex items-center gap-1.5 text-xs sm:text-sm">
+                                <AlertCircle size={14} aria-hidden="true" />
+                                שגיאה בשמירה
+                            </small>
                         )}
                     </div>
                 </div>

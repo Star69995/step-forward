@@ -1,29 +1,33 @@
 import React, { useState } from "react";
 import { auth, provider } from "../services/firebase";
-import {
-    signInWithPopup,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-} from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Footprints, Lock, LogIn, Mail } from "lucide-react";
 import Button from "../components/ui/Button";
 import TextField from "../components/ui/TextField";
+import { fetchUserProfile } from "../services/userProfile";
 
 const Login = () => {
     const navigate = useNavigate();
-    const [isSignup, setIsSignup] = useState(false);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    // Google sign-in auto-creates the Firebase Auth account for a brand-new
+    // user too — if there's no users/{uid} profile doc yet, send them to
+    // /register to pick a role instead of dropping them straight into /form.
+    const goToAppOrFinishRegistration = async (user) => {
+        const profile = await fetchUserProfile(user.uid);
+        navigate(profile ? "/form" : "/register");
+    };
+
     const handleGoogleLogin = async () => {
         try {
             setLoading(true);
-            await signInWithPopup(auth, provider);
+            const { user } = await signInWithPopup(auth, provider);
             toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
-            navigate("/form");
+            await goToAppOrFinishRegistration(user);
         } catch (error) {
             toast.error("שגיאה בהתחברות עם Google: " + error.message, { position: "bottom-center" });
         } finally {
@@ -41,22 +45,11 @@ const Login = () => {
 
         try {
             setLoading(true);
-
-            if (isSignup) {
-                await createUserWithEmailAndPassword(auth, email, password);
-                toast.success("ההרשמה בוצעה בהצלחה, ברוכים הבאים", { position: "bottom-center" });
-            } else {
-                await signInWithEmailAndPassword(auth, email, password);
-                toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
-            }
-
+            await signInWithEmailAndPassword(auth, email, password);
+            toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
             navigate("/form");
         } catch (error) {
-            if (error.code === "auth/email-already-in-use") {
-                toast.error("המייל כבר רשום במערכת", { position: "bottom-center" });
-            } else if (error.code === "auth/weak-password") {
-                toast.error("הסיסמה חלשה מדי, נדרשים לפחות 6 תווים", { position: "bottom-center" });
-            } else if (error.code === "auth/user-not-found") {
+            if (error.code === "auth/user-not-found") {
                 toast.error("משתמש זה לא קיים", { position: "bottom-center" });
             } else if (error.code === "auth/wrong-password") {
                 toast.error("הסיסמה שגויה", { position: "bottom-center" });
@@ -77,11 +70,11 @@ const Login = () => {
                         <Footprints size={32} aria-hidden="true" />
                         צעד קדימה
                     </h1>
-                    <p className="opacity-90 text-lg">{isSignup ? "יצירת חשבון חדש" : "כניסה למערכת"}</p>
+                    <p className="opacity-90 text-lg">כניסה למערכת</p>
                 </div>
 
                 {/* Body */}
-                <div className="p-8">
+                <div className="p-[var(--space-hero-pad)]">
                     <Button variant="outline" icon={LogIn} loading={loading} loadingText="טוען..." fullWidth rounded="rounded-xl" onClick={handleGoogleLogin} className="mb-4">
                         התחברות עם Google
                     </Button>
@@ -111,21 +104,14 @@ const Login = () => {
                             icon={Lock}
                             label="סיסמה"
                             type="password"
-                            placeholder={isSignup ? "לפחות 6 תווים" : "יש להזין סיסמה"}
+                            placeholder="יש להזין סיסמה"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={loading}
-                            hint={isSignup ? "הסיסמה חייבת להכיל לפחות 6 תווים" : undefined}
                         />
 
-                        <Button
-                            type="submit"
-                            variant={isSignup ? "primary" : "success"}
-                            fullWidth
-                            rounded="rounded-lg"
-                            loading={loading}
-                        >
-                            {isSignup ? "הרשמה" : "כניסה"}
+                        <Button type="submit" variant="success" fullWidth rounded="rounded-lg" loading={loading}>
+                            כניסה
                         </Button>
                     </form>
                 </div>
@@ -133,17 +119,10 @@ const Login = () => {
                 {/* Footer */}
                 <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 text-center">
                     <small className="text-gray-700">
-                        {!isSignup ? "אין עדיין חשבון? " : "יש כבר חשבון? "}
-                        <button
-                            className="font-bold text-secondary transition hover:text-purple-800 bg-transparent border-none p-0 cursor-pointer"
-                            onClick={() => {
-                                setIsSignup(!isSignup);
-                                setEmail("");
-                                setPassword("");
-                            }}
-                        >
-                            {isSignup ? "מעבר לכניסה" : "מעבר להרשמה"}
-                        </button>
+                        אין עדיין חשבון?{" "}
+                        <Link to="/register" className="font-bold text-secondary transition hover:text-purple-800">
+                            מעבר להרשמה
+                        </Link>
                     </small>
                 </div>
             </div>

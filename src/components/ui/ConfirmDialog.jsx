@@ -22,7 +22,7 @@ const ConfirmDialog = ({
             role="dialog"
             aria-modal="true"
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-[var(--space-card-pad)] fade-in">
                 {title && <h3 className="text-lg font-bold text-gray-800 mb-2">{title}</h3>}
                 {message && <p className="text-gray-600 mb-6">{message}</p>}
                 <div className="flex gap-3 justify-end">

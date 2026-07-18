@@ -28,12 +28,12 @@ const CollapsibleSection = ({
     const colorStyle = accentColor ? { color: accentColor } : undefined;
 
     return (
-        <div className={`collapsible-section pdf-avoid-break bg-white rounded-2xl shadow-xs mb-6 overflow-hidden transition hover:shadow-md ${className}`}>
+        <div className={`collapsible-section pdf-avoid-break bg-white rounded-2xl shadow-xs mb-[var(--space-section-gap)] overflow-hidden transition hover:shadow-md ${className}`}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
-                className="w-full flex items-center justify-between gap-3 p-4 sm:p-6 text-right transition hover:bg-gray-50"
+                className="w-full flex items-center justify-between gap-3 p-4 sm:p-[var(--space-card-pad)] text-right transition hover:bg-gray-50"
             >
                 <span className={`flex items-center gap-2 text-lg font-bold min-w-0 ${titleColorClass}`} style={colorStyle}>
                     {Icon && <Icon size={20} className="shrink-0" aria-hidden="true" />}
@@ -53,7 +53,7 @@ const CollapsibleSection = ({
                 className={`collapsible-content grid transition-all duration-200 ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
             >
                 <div className="overflow-hidden">
-                    <div className="px-4 sm:px-6 pb-4 sm:pb-6">{children}</div>
+                    <div className="px-4 sm:px-[var(--space-card-pad)] pb-4 sm:pb-[var(--space-card-pad)]">{children}</div>
                 </div>
             </div>
         </div>

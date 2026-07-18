@@ -15,7 +15,7 @@ const FormSection = ({
     const isSingleLine = rows === 1;
 
     return (
-        <div className={isSingleLine ? "" : "mb-6 fade-in"}>
+        <div className={isSingleLine ? "" : "fade-in"}>
             <TextField
                 as={isSingleLine ? "input" : "textarea"}
                 type={isSingleLine ? "text" : undefined}

@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
+import { initializeFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,4 +14,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
-export const db = getFirestore(app);
+// ignoreUndefinedProperties: form fields like a goal's `done`/`doneDate`
+// stay undefined in react-hook-form state until the user first interacts
+// with them; without this, setDoc()/updateDoc() throw on any save of a
+// plan whose completion checkboxes were never touched.
+export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
+
+// Local-only: point the SDK at the Firebase Local Emulator Suite instead of
+// the real project, so signup/sharing/comments can be exercised end to end
+// without touching production Auth/Firestore data. Toggled by an env flag
+// (see .env.example) rather than always-on so a normal `npm run dev` still
+// talks to the real project.
+if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === "true") {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+}

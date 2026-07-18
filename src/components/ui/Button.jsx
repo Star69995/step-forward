@@ -14,7 +14,7 @@ const VARIANTS = {
 
 const SIZES = {
     sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3",
+    md: "px-[var(--space-btn-x)] py-[var(--space-btn-y)]",
 };
 
 // Single source for the "action button" look (gradient/outline + hover lift + loading state)
