@@ -9,7 +9,7 @@ const VARIANTS = {
     info: "bg-info/10 text-info",
     warning: "bg-warning/10 text-warning",
     danger: "bg-danger/10 text-danger",
-    gray: "bg-gray-100 text-gray-600",
+    gray: "bg-surface-muted text-body",
     // For placement on the header's dark gradient, where the tinted
     // variants above don't have enough contrast.
     onDark: "bg-white/20 text-white",

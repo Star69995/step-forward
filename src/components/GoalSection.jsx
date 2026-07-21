@@ -67,7 +67,7 @@ const GoalSection = ({
         <>
             <fieldset disabled={viewMode} className="border-0 min-w-0">
                 <div className="mb-[var(--space-section-gap)]">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
                         <FileText size={16} aria-hidden="true" />
                         תיאור המטרה
                     </label>
@@ -75,13 +75,13 @@ const GoalSection = ({
                         {...register(`${baseName}.description`)}
                         rows={3}
                         placeholder="יש לתאר את המטרה בפירוט"
-                        className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-gray-50 text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                        className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-surface-muted text-heading font-sans disabled:bg-surface-muted disabled:text-muted"
                         style={{ "--accent": accent, lineHeight: "1.6", resize: "vertical" }}
                     />
                 </div>
             </fieldset>
 
-            <div className="mb-[var(--space-section-gap)] pb-[var(--space-section-gap)] border-b border-gray-200/70">
+            <div className="mb-[var(--space-section-gap)] pb-[var(--space-section-gap)] border-b border-border/70">
                 <CompletionCheck
                     checked={!!done}
                     onCheckedChange={(val) => setValue(doneField, val, { shouldDirty: true })}
@@ -94,7 +94,7 @@ const GoalSection = ({
             </div>
 
             <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-4 tracking-wide">
+                <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-4 tracking-wide">
                     <span className="w-1 h-5 rounded-sm" style={{ backgroundColor: accent }}></span>
                     <Target size={16} aria-hidden="true" />
                     יעדים ספציפיים
@@ -126,7 +126,7 @@ const GoalSection = ({
 
     if (!collapsible) {
         return (
-            <div className="pdf-avoid-break bg-white rounded-2xl shadow-xs p-4 sm:p-[var(--space-card-pad)] min-w-0">
+            <div className="pdf-avoid-break bg-surface rounded-2xl shadow-xs p-4 sm:p-[var(--space-card-pad)] min-w-0">
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <span className="flex items-center gap-2 text-lg font-bold min-w-0" style={{ color: accent }}>
                         <span className="truncate">{title || `מטרה לטווח קצר #${index}`}</span>

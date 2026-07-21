@@ -101,24 +101,24 @@ const CommentThread = ({
         : trashedComments.filter((c) => c.authorUid === currentUser.uid);
 
     return (
-        <div className="pdf-hidden mt-4 pt-4 border-t border-gray-200/70">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-gray-800 mb-3">
+        <div className="pdf-hidden mt-4 pt-4 border-t border-border/70">
+            <h4 className="flex items-center gap-2 text-sm font-bold text-heading mb-3">
                 <MessageSquare size={16} aria-hidden="true" />
                 {title}
             </h4>
 
             {loading ? (
-                <p className="text-sm text-gray-500 mb-3">טוען הערות...</p>
+                <p className="text-sm text-muted mb-3">טוען הערות...</p>
             ) : comments.length === 0 ? (
-                <p className="text-sm text-gray-500 mb-3">אין עדיין הערות</p>
+                <p className="text-sm text-muted mb-3">אין עדיין הערות</p>
             ) : (
                 <ul className="flex flex-col gap-2 mb-3 max-h-64 overflow-y-auto">
                     {comments.map((comment) => (
-                        <li key={comment.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <li key={comment.id} className="bg-surface-muted rounded-lg p-3 text-sm">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="font-semibold text-gray-800">{comment.authorName}</span>
-                                    <span className="text-gray-400 text-xs">
+                                    <span className="font-semibold text-heading">{comment.authorName}</span>
+                                    <span className="text-muted text-xs">
                                         {ROLE_META[comment.authorRole]?.label}
                                     </span>
                                 </div>
@@ -126,15 +126,15 @@ const CommentThread = ({
                                     <button
                                         type="button"
                                         onClick={() => setPendingDelete(comment)}
-                                        className="text-gray-400 hover:text-danger transition shrink-0"
+                                        className="text-muted hover:text-danger transition shrink-0"
                                         aria-label="מחיקת הערה"
                                     >
                                         <Trash2 size={14} aria-hidden="true" />
                                     </button>
                                 )}
                             </div>
-                            <p className="text-gray-700 mt-1 wrap-break-word">{comment.text}</p>
-                            <span className="text-gray-400 text-xs">
+                            <p className="text-body mt-1 wrap-break-word">{comment.text}</p>
+                            <span className="text-muted text-xs">
                                 {comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString("he-IL") : "כרגע"}
                             </span>
                         </li>
@@ -148,7 +148,7 @@ const CommentThread = ({
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="הוספת הערה..."
-                    className="flex-1 px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition"
+                    className="flex-1 px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition"
                     disabled={submitting}
                 />
                 <Button type="submit" size="sm" variant="primary" icon={Send} loading={submitting}>

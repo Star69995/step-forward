@@ -59,7 +59,7 @@ const TrashSection = ({
                 className={className}
             >
                 {items.length === 0 ? (
-                    <p className="text-sm text-gray-500">{emptyMessage}</p>
+                    <p className="text-sm text-muted">{emptyMessage}</p>
                 ) : (
                     <ul className="flex flex-col gap-2">
                         {items.map((item) => {
@@ -67,10 +67,10 @@ const TrashSection = ({
                             return (
                                 <li
                                     key={id}
-                                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50 flex-wrap"
+                                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-surface-muted flex-wrap"
                                 >
                                     <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                        <span className="text-sm text-gray-700 wrap-break-word">
+                                        <span className="text-sm text-body wrap-break-word">
                                             {renderLabel(item)}
                                         </span>
                                         <Badge variant="gray">

@@ -12,6 +12,19 @@
   --color-headerFrom: #667eea;
   --color-headerTo: #764ba2;
 
+  /* Neutral surface/text tokens — light values (default). Overridden for
+   dark mode by :root[data-theme="dark"] below. Every component consumes
+   these as plain Tailwind utilities (bg-surface, text-heading, etc.) since
+   they live in the --color-* namespace, exactly like primary/secondary
+   above — never a hardcoded bg-white/text-gray-*. */
+  --color-bg-page: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-heading: #111827;
+  --color-body: #374151;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+
   --font-rubik: Rubik, sans-serif;
 
   /* Display-density tokens — spacious values (default). Overridden for
@@ -43,6 +56,24 @@
   --space-field-dense-y: 0.25rem;
   --space-btn-x: 0.875rem;
   --space-btn-y: 0.375rem;
+}
+
+/* Dark display mode: set once on <html data-theme> by AuthContext (from
+ userProfile.themeMode, resolved through "auto" via prefers-color-scheme
+ when relevant), never decided per-component. Same higher-specificity
+ pattern as :root[data-density] above. primary/secondary get a lighter
+ tint here because they're also used as direct text color (text-primary)
+ on top of these same surfaces, not only as button backgrounds. */
+:root[data-theme="dark"] {
+  --color-bg-page: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-muted: #273549;
+  --color-heading: #e2e8f0;
+  --color-body: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-border: #334155;
+  --color-primary: #6ea3d6;
+  --color-secondary: #8fb3d9;
 }
 
 /*
@@ -78,7 +109,7 @@
   body {
     /* Calm, neutral page background — brand color is used as an accent
      (header bars, card headers), not as a full-viewport gradient. */
-    background: #f1f5f9;
+    background: var(--color-bg-page);
     min-height: 100vh;
     direction: rtl;
     text-align: right;

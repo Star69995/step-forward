@@ -36,22 +36,22 @@ const PlanSwitcher = () => {
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                     <div
                         dir="rtl"
-                        className="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-50 overflow-hidden text-right"
+                        className="absolute left-0 mt-2 w-72 bg-surface rounded-xl shadow-2xl z-50 overflow-hidden text-right"
                     >
                         <div className="max-h-72 overflow-y-auto">
                             {loading ? (
-                                <div className="p-4 text-center text-gray-500 text-sm">טוען...</div>
+                                <div className="p-4 text-center text-muted text-sm">טוען...</div>
                             ) : plans.length === 0 ? (
-                                <div className="p-4 text-center text-gray-500 text-sm">אין עדיין תוכניות</div>
+                                <div className="p-4 text-center text-muted text-sm">אין עדיין תוכניות</div>
                             ) : (
                                 plans.map((plan) => (
                                     <button
                                         key={plan.id}
                                         type="button"
                                         onClick={() => openPlan(plan)}
-                                        className="w-full text-right px-4 py-3 hover:bg-gray-50 border-b border-gray-100 flex flex-col gap-0.5 transition"
+                                        className="w-full text-right px-4 py-3 hover:bg-surface-muted border-b border-border flex flex-col gap-0.5 transition"
                                     >
-                                        <span className="font-semibold text-gray-800 text-sm truncate">
+                                        <span className="font-semibold text-heading text-sm truncate">
                                             {formatPlanLabel(plan, plans)}
                                         </span>
                                     </button>
@@ -64,7 +64,7 @@ const PlanSwitcher = () => {
                                 setOpen(false);
                                 navigate("/profile");
                             }}
-                            className="w-full text-center px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-gray-50 transition"
+                            className="w-full text-center px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-surface-muted transition"
                         >
                             כל התוכניות
                         </button>

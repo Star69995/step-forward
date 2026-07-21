@@ -35,7 +35,7 @@ const ToggleOption = ({ selected, icon: Icon, label, onClick }) => (
         onClick={onClick}
         aria-pressed={selected}
         className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border-2 text-sm font-semibold transition ${
-            selected ? "border-primary bg-primary/5 text-primary" : "border-gray-300 text-gray-600 hover:border-gray-400"
+            selected ? "border-primary bg-primary/5 text-primary" : "border-border text-body hover:border-border"
         }`}
     >
         <Icon size={16} aria-hidden="true" />
@@ -157,7 +157,7 @@ const Providers = () => {
     };
 
     const renderForm = () => (
-        <form onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-5 mb-4 border-2 border-primary/20">
+        <form onSubmit={handleSubmit} className="bg-surface-muted rounded-xl p-5 mb-4 border-2 border-primary/20">
             {editingId === "new" && (
                 <TextField
                     className="mb-4"
@@ -172,7 +172,7 @@ const Providers = () => {
             )}
 
             <div className="mb-4">
-                <span className="block text-sm font-semibold text-gray-800 mb-2">היקף השיתוף</span>
+                <span className="block text-sm font-semibold text-heading mb-2">היקף השיתוף</span>
                 <div className="flex gap-2">
                     <ToggleOption
                         selected={form.scope === "all"}
@@ -190,12 +190,12 @@ const Providers = () => {
             </div>
 
             {form.scope === "selected" && (
-                <div className="mb-4 max-h-40 overflow-y-auto border-2 border-gray-200 rounded-lg p-3">
+                <div className="mb-4 max-h-40 overflow-y-auto border-2 border-border rounded-lg p-3">
                     {plans.length === 0 ? (
-                        <p className="text-sm text-gray-500">אין עדיין תוכניות לשיתוף</p>
+                        <p className="text-sm text-muted">אין עדיין תוכניות לשיתוף</p>
                     ) : (
                         plans.map((plan) => (
-                            <label key={plan.id} className="flex items-center gap-2 py-1 text-sm text-gray-800">
+                            <label key={plan.id} className="flex items-center gap-2 py-1 text-sm text-heading">
                                 <input
                                     type="checkbox"
                                     checked={form.planIds.includes(plan.id)}
@@ -210,7 +210,7 @@ const Providers = () => {
             )}
 
             <div className="mb-5">
-                <span className="block text-sm font-semibold text-gray-800 mb-2">הרשאה</span>
+                <span className="block text-sm font-semibold text-heading mb-2">הרשאה</span>
                 <div className="flex gap-2">
                     <ToggleOption
                         selected={form.permission === "view"}
@@ -242,9 +242,9 @@ const Providers = () => {
         return (
             <div dir="rtl" className="min-h-screen py-8">
                 <div className="max-w-2xl mx-auto px-4">
-                    <div className="bg-white rounded-2xl shadow-xs p-12 text-center">
-                        <Inbox size={40} className="mx-auto text-gray-400 mb-3" aria-hidden="true" />
-                        <p className="text-gray-600">מקטע זה מיועד למקבלי שירות בלבד.</p>
+                    <div className="bg-surface rounded-2xl shadow-xs p-12 text-center">
+                        <Inbox size={40} className="mx-auto text-muted mb-3" aria-hidden="true" />
+                        <p className="text-body">מקטע זה מיועד למקבלי שירות בלבד.</p>
                     </div>
                 </div>
             </div>
@@ -254,9 +254,9 @@ const Providers = () => {
     return (
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-3xl mx-auto px-4">
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg p-[var(--space-hero-pad)]">
+                <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg p-[var(--space-hero-pad)]">
                     <div className="flex justify-between items-center gap-4 mb-[var(--space-section-gap)] flex-wrap">
-                        <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                        <h2 className="flex items-center gap-2 text-2xl font-bold text-heading">
                             <HeartHandshake size={24} aria-hidden="true" />
                             נותני שירות
                         </h2>
@@ -270,11 +270,11 @@ const Providers = () => {
                     {editingId === "new" && renderForm()}
 
                     {loading ? (
-                        <div className="text-center text-gray-600 py-8">טוען...</div>
+                        <div className="text-center text-body py-8">טוען...</div>
                     ) : shares.length === 0 ? (
                         <div className="text-center py-8">
-                            <Inbox size={36} className="mx-auto text-gray-400 mb-3" aria-hidden="true" />
-                            <p className="text-gray-500">אין עדיין נותני שירות שמורים</p>
+                            <Inbox size={36} className="mx-auto text-muted mb-3" aria-hidden="true" />
+                            <p className="text-muted">אין עדיין נותני שירות שמורים</p>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-3">
@@ -284,10 +284,10 @@ const Providers = () => {
                                 ) : (
                                     <div
                                         key={share.id}
-                                        className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-gray-200 flex-wrap"
+                                        className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-border flex-wrap"
                                     >
                                         <div>
-                                            <p className="font-semibold text-gray-800">{share.providerEmail}</p>
+                                            <p className="font-semibold text-heading">{share.providerEmail}</p>
                                             <div className="flex gap-2 mt-1 flex-wrap">
                                                 <Badge variant="gray" icon={share.scope === "all" ? Globe : ListChecks}>
                                                     {share.scope === "all"

@@ -28,12 +28,12 @@ const CollapsibleSection = ({
     const colorStyle = accentColor ? { color: accentColor } : undefined;
 
     return (
-        <div className={`collapsible-section pdf-avoid-break bg-white rounded-2xl shadow-xs mb-[var(--space-section-gap)] overflow-hidden transition hover:shadow-md ${className}`}>
+        <div className={`collapsible-section pdf-avoid-break bg-surface rounded-2xl shadow-xs mb-[var(--space-section-gap)] overflow-hidden transition hover:shadow-md ${className}`}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
-                className="w-full flex items-center justify-between gap-3 p-4 sm:p-[var(--space-card-pad)] text-right transition hover:bg-gray-50"
+                className="w-full flex items-center justify-between gap-3 p-4 sm:p-[var(--space-card-pad)] text-right transition hover:bg-surface-muted"
             >
                 <span className={`flex items-center gap-2 text-lg font-bold min-w-0 ${titleColorClass}`} style={colorStyle}>
                     {Icon && <Icon size={20} className="shrink-0" aria-hidden="true" />}
@@ -43,7 +43,7 @@ const CollapsibleSection = ({
                     {badge}
                     <ChevronDown
                         size={20}
-                        className={`collapsible-chevron text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+                        className={`collapsible-chevron text-muted transition-transform ${open ? "rotate-180" : ""}`}
                         style={colorStyle}
                         aria-hidden="true"
                     />

@@ -63,7 +63,7 @@ const Login = () => {
 
     return (
         <div className="flex justify-center items-center min-h-screen p-4" dir="rtl">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
                 {/* Header */}
                 <div className="text-white py-8 px-6 text-center bg-linear-to-br from-headerFrom to-headerTo">
                     <h1 className="flex items-center justify-center gap-2 text-4xl font-bold mb-2">
@@ -81,9 +81,9 @@ const Login = () => {
 
                     {/* Divider */}
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="flex-1 h-px bg-gray-300"></div>
-                        <span className="text-gray-500 text-sm">או</span>
-                        <div className="flex-1 h-px bg-gray-300"></div>
+                        <div className="flex-1 h-px bg-border"></div>
+                        <span className="text-muted text-sm">או</span>
+                        <div className="flex-1 h-px bg-border"></div>
                     </div>
 
                     {/* Email & Password Form */}
@@ -117,8 +117,8 @@ const Login = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 text-center">
-                    <small className="text-gray-700">
+                <div className="bg-surface-muted px-8 py-6 border-t border-border text-center">
+                    <small className="text-body">
                         אין עדיין חשבון?{" "}
                         <Link to="/register" className="font-bold text-secondary transition hover:text-purple-800">
                             מעבר להרשמה

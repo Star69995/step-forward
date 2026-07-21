@@ -36,7 +36,7 @@ const CompletionCheck = ({
     return (
         <div className={`flex flex-wrap items-center gap-x-5 gap-y-3 ${className}`}>
             <label
-                className={`flex items-center gap-2 text-sm font-semibold text-gray-800 select-none ${
+                className={`flex items-center gap-2 text-sm font-semibold text-heading select-none ${
                     disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                 }`}
             >
@@ -45,13 +45,13 @@ const CompletionCheck = ({
                     checked={checked}
                     onChange={handleToggle}
                     disabled={disabled}
-                    className="w-5 h-5 rounded-sm border-2 border-gray-300 transition disabled:cursor-not-allowed"
+                    className="w-5 h-5 rounded-sm border-2 border-border transition disabled:cursor-not-allowed"
                     style={{ accentColor: color }}
                 />
                 <CheckCircle2
                     size={16}
                     aria-hidden="true"
-                    className={checked ? "" : "text-gray-400"}
+                    className={checked ? "" : "text-muted"}
                     style={checked && !disabled ? { color } : undefined}
                 />
                 {label}
@@ -59,7 +59,7 @@ const CompletionCheck = ({
 
             {checked && (
                 <div className={`flex items-center gap-2 ${disabled ? "opacity-50" : ""}`}>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 tracking-wide">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-heading tracking-wide">
                         <Calendar size={16} aria-hidden="true" />
                         {dateLabel}
                     </label>
@@ -68,7 +68,7 @@ const CompletionCheck = ({
                         value={date}
                         onChange={(e) => onDateChange?.(e.target.value)}
                         disabled={disabled}
-                        className="accent-field px-3 py-1.5 rounded-lg bg-white text-gray-800 font-sans text-sm disabled:cursor-not-allowed disabled:bg-gray-100"
+                        className="accent-field px-3 py-1.5 rounded-lg bg-surface text-heading font-sans text-sm disabled:cursor-not-allowed disabled:bg-surface-muted"
                         style={{ "--accent": color }}
                     />
                 </div>

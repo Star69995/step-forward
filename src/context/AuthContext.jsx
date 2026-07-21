@@ -64,8 +64,84 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Unlike density, this can't be derived from userProfile alone: it has
+    // to render correctly before Firestore (or even auth) resolves, so a
+    // logged-out visitor on Login/Landing still gets the right theme. The
+    // inline script in index.html already reads the same localStorage key
+    // to set data-theme before React's first paint — this just keeps state
+    // in sync after hydration and once the profile loads.
+    const [themeMode, setThemeModeState] = useState(() => {
+        try {
+            const stored = localStorage.getItem("themeMode");
+            return ["light", "dark", "auto"].includes(stored) ? stored : "auto";
+        } catch {
+            return "auto";
+        }
+    });
+    const [resolvedTheme, setResolvedTheme] = useState(() =>
+        window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+    );
+
+    // Firestore is the long-term source of truth once the profile loads.
+    useEffect(() => {
+        if (userProfile?.themeMode && ["light", "dark", "auto"].includes(userProfile.themeMode)) {
+            setThemeModeState(userProfile.themeMode);
+        }
+    }, [userProfile]);
+
+    useEffect(() => {
+        if (themeMode !== "auto") {
+            setResolvedTheme(themeMode);
+            return;
+        }
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const updateFromSystem = () => setResolvedTheme(mediaQuery.matches ? "dark" : "light");
+        updateFromSystem();
+        mediaQuery.addEventListener("change", updateFromSystem);
+        return () => mediaQuery.removeEventListener("change", updateFromSystem);
+    }, [themeMode]);
+
+    useEffect(() => {
+        document.documentElement.setAttribute("data-theme", resolvedTheme);
+    }, [resolvedTheme]);
+
+    const setThemeMode = async (value) => {
+        const previous = themeMode;
+        setThemeModeState(value);
+        try {
+            localStorage.setItem("themeMode", value);
+        } catch {
+            // best-effort cache only, safe to ignore
+        }
+        if (!currentUser) return;
+        try {
+            await updateUserProfile(currentUser.uid, { themeMode: value });
+        } catch (error) {
+            console.error(error);
+            setThemeModeState(previous);
+            try {
+                localStorage.setItem("themeMode", previous);
+            } catch {
+                // best-effort cache only, safe to ignore
+            }
+            toast.error("שגיאה בשמירת מצב התצוגה");
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ currentUser, userProfile, role: userProfile?.role, density, setDensity, logout }}>
+        <AuthContext.Provider
+            value={{
+                currentUser,
+                userProfile,
+                role: userProfile?.role,
+                density,
+                setDensity,
+                themeMode,
+                resolvedTheme,
+                setThemeMode,
+                logout,
+            }}
+        >
             {!loading && children}
         </AuthContext.Provider>
     );

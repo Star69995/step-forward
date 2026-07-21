@@ -19,7 +19,7 @@ const InfoHint = ({ text }) => {
                 onMouseLeave={() => setOpen(false)}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setOpen(false)}
-                className="text-gray-400 hover:text-primary transition"
+                className="text-muted hover:text-primary transition"
             >
                 <HelpCircle size={15} aria-hidden="true" />
                 <span className="sr-only">הסבר נוסף</span>
@@ -28,7 +28,7 @@ const InfoHint = ({ text }) => {
                 <span
                     id={id}
                     role="tooltip"
-                    className="absolute z-20 top-full right-0 mt-1 w-56 bg-gray-800 text-white text-xs font-normal leading-relaxed rounded-lg p-2.5 shadow-lg"
+                    className="absolute z-20 top-full right-0 mt-1 w-56 bg-heading text-surface text-xs font-normal leading-relaxed rounded-lg p-2.5 shadow-lg"
                 >
                     {text}
                 </span>

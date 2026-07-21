@@ -15,9 +15,10 @@ dist-ssr
 .env.*
 !.env.example
 
-# Local Firebase emulator data dump (see `npm run emulators`)
-.emulator-data
+# Local Firebase emulator data dump (see `npm run emulators`), and the transient
+# temp folder firebase-tools creates while swapping it in on export
 firebase-export-*/
+.firebase-emulator*/
 
 # Editor directories and files
 .vscode/*

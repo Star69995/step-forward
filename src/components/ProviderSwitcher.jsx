@@ -36,13 +36,13 @@ const ProviderSwitcher = () => {
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                     <div
                         dir="rtl"
-                        className="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-50 overflow-hidden text-right"
+                        className="absolute left-0 mt-2 w-72 bg-surface rounded-xl shadow-2xl z-50 overflow-hidden text-right"
                     >
                         <div className="max-h-72 overflow-y-auto">
                             {loading ? (
-                                <div className="p-4 text-center text-gray-500 text-sm">טוען...</div>
+                                <div className="p-4 text-center text-muted text-sm">טוען...</div>
                             ) : recipients.length === 0 ? (
-                                <div className="p-4 text-center text-gray-500 text-sm">
+                                <div className="p-4 text-center text-muted text-sm">
                                     אין עדיין מקבלי שירות ששיתפו איתך
                                 </div>
                             ) : (
@@ -51,12 +51,12 @@ const ProviderSwitcher = () => {
                                         key={recipient.recipientUid}
                                         type="button"
                                         onClick={() => openRecipient(recipient)}
-                                        className="w-full text-right px-4 py-3 hover:bg-gray-50 border-b border-gray-100 flex flex-col gap-0.5 transition"
+                                        className="w-full text-right px-4 py-3 hover:bg-surface-muted border-b border-border flex flex-col gap-0.5 transition"
                                     >
-                                        <span className="font-semibold text-gray-800 text-sm truncate">
+                                        <span className="font-semibold text-heading text-sm truncate">
                                             {recipient.recipientDisplayName || recipient.recipientEmail}
                                         </span>
-                                        <span className="text-xs text-gray-500 truncate">{recipient.recipientEmail}</span>
+                                        <span className="text-xs text-muted truncate">{recipient.recipientEmail}</span>
                                     </button>
                                 ))
                             )}

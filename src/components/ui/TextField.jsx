@@ -1,10 +1,10 @@
 import React from "react";
 
 const DENSE_CLASS =
-    "w-full px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500";
+    "w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted";
 
 const FULL_CLASS =
-    "w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-sans transition focus:border-secondary focus:outline-hidden focus:ring-2 focus:ring-secondary/10 focus:bg-white hover:border-gray-400 disabled:bg-gray-100 disabled:text-gray-500";
+    "w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] border-2 border-border rounded-lg bg-surface-muted text-heading font-sans transition focus:border-secondary focus:outline-hidden focus:ring-2 focus:ring-secondary/10 focus:bg-surface hover:border-border disabled:bg-surface-muted disabled:text-muted";
 
 // Single visual source for a labeled text field, used both by form-bound
 // fields (FormSection, via react-hook-form's register spread) and plain
@@ -25,7 +25,7 @@ const TextField = ({
     return (
         <div className={className}>
             {label && (
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
+                <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
                     {Icon && <Icon size={16} aria-hidden="true" />}
                     {label}
                 </label>
@@ -41,7 +41,7 @@ const TextField = ({
                 {...fieldProps}
             />
             {hint && (
-                <small className="flex items-center gap-1 text-gray-600 mt-2 text-xs italic">{hint}</small>
+                <small className="flex items-center gap-1 text-body mt-2 text-xs italic">{hint}</small>
             )}
         </div>
     );

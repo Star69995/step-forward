@@ -208,6 +208,37 @@ async function main() {
         if (snap.empty) throw new Error("no shares found via collection group");
     });
 
+    // 4b. version history — created by savePlan.js as an editing-session
+    // snapshot (see CLAUDE.md's "היסטוריית גרסאות"). Readable by anyone with
+    // access to the plan; writable only by whoever can write the plan.
+    await expectOk("recipient creates a version snapshot", () =>
+        setDoc(doc(rDb, `users/${rUid}/plans/${planId}/versions/v1`), {
+            data: { name: "Test Plan" },
+            startedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            editedByUid: rUid,
+            editedByName: "Recipient",
+            editedByRole: "recipient",
+        })
+    );
+    await expectOk("provider (view-only) CAN read the version history", async () => {
+        const snap = await getDoc(doc(pDb, `users/${rUid}/plans/${planId}/versions/v1`));
+        if (!snap.exists()) throw new Error("version not visible");
+    });
+    await expectDenied("provider (view-only) CANNOT create a version", () =>
+        setDoc(doc(pDb, `users/${rUid}/plans/${planId}/versions/v2`), {
+            data: { name: "Hacked" },
+            startedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            editedByUid: pUid,
+            editedByName: "Provider",
+            editedByRole: "provider",
+        })
+    );
+    await expectDenied("nobody can delete a version — permanent history", () =>
+        deleteDoc(doc(rDb, `users/${rUid}/plans/${planId}/versions/v1`))
+    );
+
     // 5. upgrade to edit
     await expectOk("recipient upgrades share to permission=edit", () =>
         setDoc(
@@ -218,6 +249,29 @@ async function main() {
     );
     await expectOk("provider CAN write the plan after upgrade to edit", () =>
         setDoc(doc(pDb, `users/${rUid}/plans/${planId}`), { name: "Edited by provider" }, { merge: true })
+    );
+    await expectOk("provider CAN create a version after upgrade to edit", () =>
+        setDoc(doc(pDb, `users/${rUid}/plans/${planId}/versions/v2`), {
+            data: { name: "Edited by provider" },
+            startedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            editedByUid: pUid,
+            editedByName: "Provider",
+            editedByRole: "provider",
+        })
+    );
+    await expectDenied("provider CANNOT create a version claiming the recipient as editor", () =>
+        setDoc(doc(pDb, `users/${rUid}/plans/${planId}/versions/v3`), {
+            data: { name: "Spoofed" },
+            startedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            editedByUid: rUid,
+            editedByName: "Recipient",
+            editedByRole: "recipient",
+        })
+    );
+    await expectDenied("nobody can delete a version even after edit grant", () =>
+        deleteDoc(doc(pDb, `users/${rUid}/plans/${planId}/versions/v2`))
     );
 
     // 6. revoke is now a soft-delete (deletedAt set), not an outright

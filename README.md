@@ -77,6 +77,7 @@ npm run dev
 | `npm run emulators` | הרצת אמולטורים מקומיים ל-Auth+Firestore (ראו סעיף הבא) |
 | `npm run dev:emulator` | הרצת סביבת הפיתוח מול האמולטורים המקומיים במקום פרויקט Firebase האמיתי |
 | `npm run verify:rules` | הרצת בדיקה אוטומטית של `firestore.rules` מול האמולטורים (דורש שהאמולטורים כבר רצים) |
+| `npm run emulators:recover` | שחזור נתוני אמולטור שנתקעו בתיקייה זמנית `firebase-export-*` בגלל כשל `EPERM` בסגירה (ראו סעיף הבא) |
 
 ---
 
@@ -93,6 +94,8 @@ npm run dev:emulator
 ```
 
 - ממשק האמולטורים (יצירת/עריכת משתמשי בדיקה, צפייה בנתוני Firestore, אימות מייל ידני) זמין ב-`http://127.0.0.1:4000`.
+- נתוני האמולטור (Firestore+Auth) נשמרים בין הרצות בתיקייה `./.firebase-emulator-data` (לא ב-git, ראו `.gitignore`) — `npm run emulators` מייבא/מייצא ממנה.
+- **תקלה ידועה בווינדוס:** ל-`firebase-tools` יש באג פתוח וידוע ([#3092](https://github.com/firebase/firebase-tools/issues/3092)) שגורם לפעמים לכשל `EPERM: operation not permitted, rename ...` בסגירת האמולטור, לפני שהוא מספיק להחליף את `./.firebase-emulator-data` בייצוא העדכני — תקלה סביב וינדוס בלבד ב-`firebase-tools` עצמו, לא בהגדרות הפרויקט. במקרה כזה הנתונים לא אבודים: הם נשארים שלמים בתיקייה זמנית בשם `firebase-export-<מזהה>` בשורש הפרויקט. הרצת `npm run emulators:recover` (`scripts/recover-emulator-export.mjs`) מאתרת אותה ומעבירה את הנתונים בחזרה ל-`./.firebase-emulator-data` אוטומטית.
 - ההרשמה דורשת מייל מאומת לפני שניתן לשתף (ראו CLAUDE.md) — באמולטור אפשר לאשר מייל ידנית דרך לשונית Authentication ב-`http://127.0.0.1:4000`, בלי לשלוח מייל אמיתי.
 - `npm run verify:rules` (`scripts/verify-firestore-rules.mjs`) מריץ סוללת בדיקות אוטומטית מול האמולטורים: הרשמה, שיתוף לפי מייל, הרשאת צפייה/עריכה, הערות, וביטול שיתוף מיידי — כולל השאילתה שה-`ProviderSwitcher` תלוי בה. יש להריץ אותו אחרי כל שינוי ב-`firestore.rules`.
 - אין להריץ סקריפט זה או `dev:emulator` מול פרויקט Firebase אמיתי — הוא יוצר ומוחק משתמשי בדיקה בחופשיות.

@@ -9,7 +9,7 @@ const VARIANTS = {
     success: "bg-linear-to-r from-success to-teal-800 text-white shadow-md hover:shadow-lg",
     danger: "bg-linear-to-r from-danger to-red-800 text-white shadow-md hover:shadow-lg",
     blue: "bg-linear-to-r from-blue-700 to-blue-900 text-white shadow-md hover:shadow-lg",
-    outline: "bg-white text-gray-800 border-2 border-gray-300 hover:border-primary shadow-xs hover:shadow-md",
+    outline: "bg-surface text-heading border-2 border-border hover:border-primary shadow-xs hover:shadow-md",
 };
 
 const SIZES = {

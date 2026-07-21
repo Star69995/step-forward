@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "vite",
     "dev:emulator": "vite --mode emulator",
-    "emulators": "firebase emulators:start --project demo-step-forward --import=./.emulator-data --export-on-exit",
+    "emulators": "firebase emulators:start --project demo-step-forward --import=./.firebase-emulator-data --export-on-exit=./.firebase-emulator-data",
     "verify:rules": "node scripts/verify-firestore-rules.mjs",
+    "emulators:recover": "node scripts/recover-emulator-export.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

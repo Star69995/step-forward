@@ -22,6 +22,9 @@ import {
     MailWarning,
     Maximize2,
     Minimize2,
+    Sun,
+    Moon,
+    Monitor,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -31,7 +34,7 @@ import Badge from "../components/ui/Badge";
 import SegmentedToggle from "../components/ui/SegmentedToggle";
 
 const Profile = () => {
-    const { currentUser, role, logout, density, setDensity } = useAuth();
+    const { currentUser, role, logout, density, setDensity, themeMode, setThemeMode } = useAuth();
     const { plans, trashedPlans, loading, setPlans, setTrashedPlans } = usePlans(currentUser?.uid);
     const [deleting, setDeleting] = useState(null);
     const [pendingDelete, setPendingDelete] = useState(null);
@@ -121,15 +124,15 @@ const Profile = () => {
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header Section */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
+                <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
                     <div className="flex justify-between items-start gap-4 flex-wrap">
                         <div>
-                            <h2 className="flex items-center gap-2 text-3xl font-bold text-gray-800 mb-1">
+                            <h2 className="flex items-center gap-2 text-3xl font-bold text-heading mb-1">
                                 <User size={26} aria-hidden="true" />
                                 שלום, {currentUser?.displayName || currentUser?.email}
                                 <RoleBadge role={role} />
                             </h2>
-                            <small className="text-gray-500">{currentUser?.email}</small>
+                            <small className="text-muted">{currentUser?.email}</small>
                             <div className="mt-2 flex items-center gap-2 flex-wrap">
                                 {emailVerified ? (
                                     <Badge variant="success" icon={MailCheck}>
@@ -154,13 +157,25 @@ const Profile = () => {
                                 )}
                             </div>
                             <div className="mt-4 flex items-center gap-3 flex-wrap">
-                                <span className="text-sm font-semibold text-gray-700">צפיפות תצוגה</span>
+                                <span className="text-sm font-semibold text-body">צפיפות תצוגה</span>
                                 <SegmentedToggle
                                     value={density}
                                     onChange={setDensity}
                                     options={[
                                         { value: "spacious", label: "מרווח", icon: Maximize2 },
                                         { value: "compact", label: "קומפקטי", icon: Minimize2 },
+                                    ]}
+                                />
+                            </div>
+                            <div className="mt-3 flex items-center gap-3 flex-wrap">
+                                <span className="text-sm font-semibold text-body">מצב תצוגה</span>
+                                <SegmentedToggle
+                                    value={themeMode}
+                                    onChange={setThemeMode}
+                                    options={[
+                                        { value: "light", label: "בהיר", icon: Sun },
+                                        { value: "dark", label: "כהה", icon: Moon },
+                                        { value: "auto", label: "אוטומטי", icon: Monitor },
                                     ]}
                                 />
                             </div>
@@ -196,14 +211,14 @@ const Profile = () => {
                     </div>
 
                     {loading ? (
-                        <div className="bg-white rounded-2xl shadow-xs p-12 text-center text-gray-600">
+                        <div className="bg-surface rounded-2xl shadow-xs p-12 text-center text-body">
                             טוען את התוכניות...
                         </div>
                     ) : plans.length === 0 ? (
-                        <div className="bg-white rounded-2xl shadow-xs p-12 text-center">
-                            <Inbox size={40} className="mx-auto text-gray-400 mb-3" aria-hidden="true" />
-                            <h4 className="text-2xl text-gray-400 mb-3">אין עדיין תוכניות</h4>
-                            <p className="text-gray-500 mb-6">ניתן להתחיל ליצור את התוכנית הראשונה לקידום המטרות</p>
+                        <div className="bg-surface rounded-2xl shadow-xs p-12 text-center">
+                            <Inbox size={40} className="mx-auto text-muted mb-3" aria-hidden="true" />
+                            <h4 className="text-2xl text-muted mb-3">אין עדיין תוכניות</h4>
+                            <p className="text-muted mb-6">ניתן להתחיל ליצור את התוכנית הראשונה לקידום המטרות</p>
                             <Button variant="success" icon={Plus} onClick={handleNewPlan} className="mx-auto">
                                 יצירת תוכנית עכשיו
                             </Button>
@@ -213,11 +228,11 @@ const Profile = () => {
                             {plans.map((plan) => (
                                 <div
                                     key={plan.id}
-                                    className="bg-white rounded-2xl shadow-xs overflow-hidden transition hover:-translate-y-1 hover:shadow-lg border-l-4 border-primary"
+                                    className="bg-surface rounded-2xl shadow-xs overflow-hidden transition hover:-translate-y-1 hover:shadow-lg border-l-4 border-primary"
                                 >
                                     {/* Card Header */}
-                                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                                        <h5 className="flex items-center gap-1.5 font-bold text-gray-800 wrap-break-word">
+                                    <div className="bg-surface-muted px-6 py-4 border-b border-border">
+                                        <h5 className="flex items-center gap-1.5 font-bold text-heading wrap-break-word">
                                             <Clock size={14} aria-hidden="true" />
                                             {formatPlanLabel(plan, plans)}
                                         </h5>

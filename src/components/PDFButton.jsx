@@ -12,6 +12,12 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
         setIsExporting(true);
         setExportProgress(0);
 
+        // The exported document should always read as a plain light-mode
+        // page, regardless of the viewer's active theme — html2canvas draws
+        // whatever computed colors are on screen at capture time.
+        const previousTheme = document.documentElement.getAttribute("data-theme");
+        document.documentElement.setAttribute("data-theme", "light");
+
         const sections = document.querySelectorAll(".collapsible-section");
         sections.forEach((s) => s.classList.add("pdf-force-open"));
 
@@ -79,6 +85,11 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
         };
 
         const restore = () => {
+            if (previousTheme) {
+                document.documentElement.setAttribute("data-theme", previousTheme);
+            } else {
+                document.documentElement.removeAttribute("data-theme");
+            }
             sections.forEach((s) => s.classList.remove("pdf-force-open"));
             hiddenButtons.forEach((btn) => (btn.style.display = ""));
             stackGrids.forEach((grid) => (grid.style.display = ""));
@@ -141,7 +152,7 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
 
             {isExporting && (
                 <div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-sm overflow-hidden"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-surface-muted rounded-sm overflow-hidden"
                     style={{ transform: "translateY(8px)" }}
                 >
                     <div

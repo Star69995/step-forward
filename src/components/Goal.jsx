@@ -42,7 +42,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false, canEd
                 <div className="grid grid-cols-1 gap-4">
                     {/* Goal Text Input */}
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
                             <Target size={16} aria-hidden="true" />
                             תיאור היעד
                         </label>
@@ -50,32 +50,32 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false, canEd
                             type="text"
                             {...register(`${baseName}.target${index}.text`)}
                             placeholder={`תאר את היעד #${index}`}
-                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-surface text-heading font-sans disabled:bg-surface-muted disabled:text-muted"
                             style={{ "--accent": color }}
                         />
                     </div>
 
                     {/* End Date Input */}
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2 tracking-wide">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
                             <Calendar size={16} aria-hidden="true" />
                             תאריך סיום
                         </label>
                         <input
                             type="date"
                             {...register(`${baseName}.target${index}.endDate`)}
-                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-white text-gray-800 font-sans disabled:bg-gray-100 disabled:text-gray-500"
+                            className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-surface text-heading font-sans disabled:bg-surface-muted disabled:text-muted"
                             style={{ "--accent": color }}
                         />
                     </div>
                 </div>
             </fieldset>
 
-            <small className="block text-gray-600 mt-3 text-xs italic">
+            <small className="block text-body mt-3 text-xs italic">
                 יש להגדיר יעד קטן, מדיד, ברור ובעל לוח זמנים
             </small>
 
-            <div className="mt-4 pt-4 border-t border-gray-200/70">
+            <div className="mt-4 pt-4 border-t border-border/70">
                 <CompletionCheck
                     checked={!!done}
                     onCheckedChange={(val) => setValue(doneField, val, { shouldDirty: true })}

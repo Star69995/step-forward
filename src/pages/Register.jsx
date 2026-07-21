@@ -37,10 +37,11 @@ const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    // A Google sign-in on the Login page auto-creates the Firebase Auth
-    // account even for a brand-new user, bypassing this page's role picker.
-    // Landing here already signed-in with no users/{uid} doc yet means:
-    // just finish the role choice instead of showing the signup form again.
+    // A Google sign-in (here or on the Login page) auto-creates the Firebase
+    // Auth account even for a brand-new user, bypassing this page's normal
+    // signup form. Landing here already signed-in with no users/{uid} doc
+    // yet means: just ask for the name (prefilled from the Google account)
+    // and the role, instead of showing the full signup form again.
     const [checkingExisting, setCheckingExisting] = useState(!!currentUser);
     const [needsRoleOnly, setNeedsRoleOnly] = useState(false);
 
@@ -58,6 +59,7 @@ const Register = () => {
             if (profile) {
                 navigate("/form", { replace: true });
             } else {
+                setName(currentUser.displayName || "");
                 setNeedsRoleOnly(true);
                 setCheckingExisting(false);
             }
@@ -69,8 +71,15 @@ const Register = () => {
     }, [currentUser, navigate]);
 
     const handleCompleteRoleOnly = async () => {
+        if (!name.trim()) {
+            toast.error("יש למלא שם", { position: "bottom-center" });
+            return;
+        }
         try {
             setLoading(true);
+            if (name.trim() !== (currentUser.displayName || "")) {
+                await updateProfile(currentUser, { displayName: name.trim() });
+            }
             await createUserProfile(currentUser, role);
             toast.success("ההרשמה בוצעה בהצלחה", { position: "bottom-center" });
             navigate("/form");
@@ -86,11 +95,13 @@ const Register = () => {
             setLoading(true);
             const { user } = await signInWithPopup(auth, provider);
             const existingProfile = await fetchUserProfile(user.uid);
-            if (!existingProfile) {
-                await createUserProfile(user, role);
+            if (existingProfile) {
+                toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
+                navigate("/form");
+                return;
             }
-            toast.success("ההרשמה בוצעה בהצלחה", { position: "bottom-center" });
-            navigate("/form");
+            setName(user.displayName || "");
+            setNeedsRoleOnly(true);
         } catch (error) {
             toast.error("שגיאה בהרשמה עם Google: " + error.message, { position: "bottom-center" });
         } finally {
@@ -133,7 +144,7 @@ const Register = () => {
 
     const roleSelector = (
         <div className="mb-6">
-            <span className="block text-sm font-semibold text-gray-800 mb-2">סוג המשתמש</span>
+            <span className="block text-sm font-semibold text-heading mb-2">סוג המשתמש</span>
             <div className="grid grid-cols-1 gap-3">
                 {ROLES.map(({ value, label, description, icon: Icon }) => {
                     const selected = role === value;
@@ -144,16 +155,16 @@ const Register = () => {
                             onClick={() => setRole(value)}
                             aria-pressed={selected}
                             className={`flex items-start gap-3 text-right p-4 rounded-xl border-2 transition ${
-                                selected ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400"
+                                selected ? "border-primary bg-primary/5" : "border-border hover:border-border"
                             }`}
                         >
                             <Icon size={22} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
                             <span className="flex-1">
-                                <span className="flex items-center gap-2 font-bold text-gray-800">
+                                <span className="flex items-center gap-2 font-bold text-heading">
                                     {label}
                                     {selected && <Check size={16} className="text-primary" aria-hidden="true" />}
                                 </span>
-                                <span className="block text-sm text-gray-600 mt-0.5">{description}</span>
+                                <span className="block text-sm text-body mt-0.5">{description}</span>
                             </span>
                         </button>
                     );
@@ -164,7 +175,7 @@ const Register = () => {
 
     return (
         <div className="flex justify-center items-center min-h-screen p-4" dir="rtl">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
                 {/* Header */}
                 <div className="text-white py-8 px-6 text-center bg-linear-to-br from-headerFrom to-headerTo">
                     <h1 className="flex items-center justify-center gap-2 text-4xl font-bold mb-2">
@@ -184,9 +195,19 @@ const Register = () => {
                         </div>
                     ) : needsRoleOnly ? (
                         <>
-                            <p className="text-gray-600 mb-4 text-sm">
-                                ההתחברות בוצעה בהצלחה — נותר רק לבחור את סוג המשתמש כדי לסיים את ההרשמה.
+                            <p className="text-body mb-4 text-sm">
+                                ההתחברות בוצעה בהצלחה — נותר לאשר את השם ולבחור את סוג המשתמש כדי לסיים את ההרשמה.
                             </p>
+                            <TextField
+                                className="mb-4"
+                                icon={User}
+                                label="שם מלא"
+                                type="text"
+                                placeholder="השם המלא"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                disabled={loading}
+                            />
                             {roleSelector}
                             <Button
                                 variant="primary"
@@ -200,8 +221,6 @@ const Register = () => {
                         </>
                     ) : (
                         <>
-                            {roleSelector}
-
                             <Button
                                 variant="outline"
                                 icon={LogIn}
@@ -217,9 +236,9 @@ const Register = () => {
 
                             {/* Divider */}
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="flex-1 h-px bg-gray-300"></div>
-                                <span className="text-gray-500 text-sm">או</span>
-                                <div className="flex-1 h-px bg-gray-300"></div>
+                                <div className="flex-1 h-px bg-border"></div>
+                                <span className="text-muted text-sm">או</span>
+                                <div className="flex-1 h-px bg-border"></div>
                             </div>
 
                             {/* Email & Password Form */}
@@ -258,6 +277,8 @@ const Register = () => {
                                     hint="הסיסמה חייבת להכיל לפחות 6 תווים"
                                 />
 
+                                {roleSelector}
+
                                 <Button type="submit" variant="primary" fullWidth rounded="rounded-lg" loading={loading}>
                                     הרשמה
                                 </Button>
@@ -268,8 +289,8 @@ const Register = () => {
 
                 {/* Footer */}
                 {!needsRoleOnly && !checkingExisting && (
-                    <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 text-center">
-                        <small className="text-gray-700">
+                    <div className="bg-surface-muted px-8 py-6 border-t border-border text-center">
+                        <small className="text-body">
                             יש כבר חשבון?{" "}
                             <Link to="/login" className="font-bold text-secondary transition hover:text-purple-800">
                                 מעבר לכניסה

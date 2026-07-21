@@ -18,6 +18,7 @@ import InfoHint from "../components/ui/InfoHint";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import CommentThread from "../components/CommentThread";
+import VersionHistory from "../components/VersionHistory";
 import {
     Footprints,
     ClipboardList,
@@ -119,6 +120,11 @@ const FormPage = () => {
     // edit/view toggle itself only exists for someone allowed to edit.
     const effectiveViewMode = canEdit ? viewMode : true;
 
+    // Whoever is actually saving right now — the recipient themself or a
+    // provider with an edit grant — attributed on every version entry in
+    // VersionHistory.jsx, same shape as CommentThread's authorUid/Name/Role.
+    const editor = { uid: currentUser.uid, name: currentUser.displayName || currentUser.email, role };
+
     // All of the plan's comments (whole-plan + every goal), active and
     // trashed, are fetched once here and filtered by targetGoal for each
     // CommentThread instance below.
@@ -143,6 +149,17 @@ const FormPage = () => {
     };
     const handleCommentDeletedForever = (commentId) =>
         setTrashedComments((prev) => prev.filter((c) => c.id !== commentId));
+
+    // After VersionHistory.jsx reverts the form's values and saves directly
+    // (bypassing the debounce, same as an explicit action), the ambient
+    // watch-based autosave above must not treat the reverted values as a new
+    // pending change and write them again — so its comparison snapshot is
+    // refreshed here, exactly like it is right after the initial load.
+    const handleReverted = (newValues) => {
+        initialValuesRef.current = JSON.stringify(newValues);
+        setSaveStatus("saved");
+        savedResetTimeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+    };
 
     // Matches the "lg" breakpoint used below for the short-goals grid — only
     // at that width do all three cards sit in one row, which is when a single
@@ -248,7 +265,7 @@ const FormPage = () => {
             saveTimeoutRef.current = setTimeout(async () => {
                 setSaveStatus("saving");
                 try {
-                    await savePlan(ownerUid, getValues(), planId);
+                    await savePlan(ownerUid, getValues(), planId, editor);
                     setSaveStatus("saved");
                     savedResetTimeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
                 } catch (error) {
@@ -310,7 +327,7 @@ const FormPage = () => {
                      management, edit/view toggle) live in the fixed action bar
                      at the bottom so they're reachable from anywhere on the
                      page, not just when scrolled to the top. */}
-                    <div className="flex items-center gap-2 mb-6 pdf-hidden text-sm font-semibold text-gray-600">
+                    <div className="flex items-center gap-2 mb-6 pdf-hidden text-sm font-semibold text-body">
                         {effectiveViewMode ? (
                             <Eye size={16} aria-hidden="true" />
                         ) : (
@@ -326,36 +343,36 @@ const FormPage = () => {
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
                                         <User size={16} aria-hidden="true" />
                                         שם מלא
                                     </label>
                                     <FormSection name="name" rows={1} showLabel={false} placeholder="השם המלא" />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
                                         <Calendar size={16} aria-hidden="true" />
                                         תחילת התהליך
                                     </label>
                                     <input
                                         type="date"
                                         {...methods.register("startDate")}
-                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted"
                                     />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
                                         <Calendar size={16} aria-hidden="true" />
                                         כתיבת התוכנית
                                     </label>
                                     <input
                                         type="date"
                                         {...methods.register("endDate")}
-                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted"
                                     />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
                                         <Users size={16} aria-hidden="true" />
                                         שותפים
                                     </label>
@@ -374,7 +391,7 @@ const FormPage = () => {
                                         <span className="bg-success text-white p-1.5 rounded-sm">
                                             <CheckCircle2 size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">מה הצלחתי עד עכשיו?</label>
+                                        <label className="font-semibold text-sm text-heading">מה הצלחתי עד עכשיו?</label>
                                         <InfoHint text="הישגים, קטנים כגדולים, שכבר קרו בדרך עד כה." />
                                     </div>
                                     <FormSection name="successUntilNow" showLabel={false} rows={4} />
@@ -384,7 +401,7 @@ const FormPage = () => {
                                         <span className="bg-info text-white p-1.5 rounded-sm">
                                             <Wrench size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">אילו כלים?</label>
+                                        <label className="font-semibold text-sm text-heading">אילו כלים?</label>
                                         <InfoHint text="שיטות, טכניקות או משאבים שכבר נעשה בהם שימוש עד כה." />
                                     </div>
                                     <FormSection name="toolsUsed" showLabel={false} rows={4} />
@@ -394,7 +411,7 @@ const FormPage = () => {
                                         <span className="bg-warning text-white p-1.5 rounded-sm">
                                             <Lightbulb size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">מה למדתי?</label>
+                                        <label className="font-semibold text-sm text-heading">מה למדתי?</label>
                                         <InfoHint text="תובנות או ידע חדש שנרכשו במהלך התהליך עד כה." />
                                     </div>
                                     <FormSection name="whatILearned" showLabel={false} rows={4} />
@@ -405,7 +422,7 @@ const FormPage = () => {
                                         <span className="bg-primary text-white p-1.5 rounded-sm">
                                             <Target size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">מה מסקרן אותי?</label>
+                                        <label className="font-semibold text-sm text-heading">מה מסקרן אותי?</label>
                                         <InfoHint text="תחומי עניין, נושאים שמושכים לבדוק או ללמוד עליהם, דברים שיוצרים סקרנות לגבי העתיד." />
                                     </div>
                                     <FormSection name="motivatingFactors" showLabel={false} rows={4} />
@@ -415,7 +432,7 @@ const FormPage = () => {
                                         <span className="bg-info text-white p-1.5 rounded-sm">
                                             <Handshake size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">מי/מה עוזר?</label>
+                                        <label className="font-semibold text-sm text-heading">מי/מה עוזר?</label>
                                         <InfoHint text="אנשים, קבוצות או גורמים אחרים שתומכים או מסייעים בדרך." />
                                     </div>
                                     <FormSection name="whoHelpsMe" showLabel={false} rows={4} />
@@ -425,18 +442,18 @@ const FormPage = () => {
                                         <span className="bg-danger text-white p-1.5 rounded-sm">
                                             <Star size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">מה חשוב לי עכשיו?</label>
+                                        <label className="font-semibold text-sm text-heading">מה חשוב לי עכשיו?</label>
                                         <InfoHint text="ערכים או עדיפויות שמנחים בשלב הנוכחי." />
                                     </div>
                                     <FormSection name="whatImportantNow" showLabel={false} rows={4} />
                                 </div>
 
-                                <div className="lg:col-span-3 bg-gray-100 p-4 rounded-lg">
+                                <div className="lg:col-span-3 bg-surface-muted p-4 rounded-lg">
                                     <div className="flex items-center mb-2 gap-2">
                                         <span className="bg-gray-600 text-white p-1.5 rounded-sm">
                                             <Dumbbell size={14} aria-hidden="true" />
                                         </span>
-                                        <label className="font-semibold text-sm text-gray-800">כוחות ומשאבים?</label>
+                                        <label className="font-semibold text-sm text-heading">כוחות ומשאבים?</label>
                                         <InfoHint text="תכונות אישיות, יכולות, אנשים או שירותים שיכולים לעזור בדרך." />
                                     </div>
                                     <FormSection name="myStrengths" showLabel={false} rows={3} />
@@ -682,6 +699,14 @@ const FormPage = () => {
                         />
                     </CollapsibleSection>
 
+                    <VersionHistory
+                        ownerUid={ownerUid}
+                        planId={planId}
+                        canEdit={canEdit}
+                        editor={editor}
+                        onReverted={handleReverted}
+                    />
+
                 </div>
 
                 {/* ACTION BAR — fixed to the viewport so the plan's controls
@@ -693,7 +718,7 @@ const FormPage = () => {
                  isn't anchored to the Header's height. */}
                 <div
                     ref={actionBarRef}
-                    className="fixed inset-x-0 bottom-0 z-30 pdf-hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+                    className="fixed inset-x-0 bottom-0 z-30 pdf-hidden bg-surface/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
                 >
                     <div className="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
                         {isOwner && role === "recipient" && (
@@ -722,10 +747,10 @@ const FormPage = () => {
                         )}
                         <PDFButton targetId="formArea" autoTrigger={autoExport} />
                         {saveStatus === "pending" && (
-                            <small className="text-gray-500 text-xs sm:text-sm">יש שינויים שטרם נשמרו</small>
+                            <small className="text-muted text-xs sm:text-sm">יש שינויים שטרם נשמרו</small>
                         )}
                         {saveStatus === "saving" && (
-                            <small className="text-gray-500 flex items-center gap-2 text-xs sm:text-sm">
+                            <small className="text-muted flex items-center gap-2 text-xs sm:text-sm">
                                 <Spinner size={14} />
                                 שומר...
                             </small>
