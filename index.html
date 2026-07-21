@@ -4,11 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Colors the iOS Safari status bar/toolbar to match the header gradient's
-     leading color (--color-headerFrom in src/index.css). The header gradient
-     doesn't change between light/dark mode, so this stays a static value
-     rather than something toggled by the theme script below. -->
-    <meta name="theme-color" content="#667eea" />
+    <!-- Colors the browser toolbar/status bar to match the header. Value is
+     --color-headerMid in src/index.css (the flat midpoint blend of
+     headerFrom/headerTo — a solid tint can't match a left-to-right gradient
+     on both edges, so the midpoint keeps the seam roughly even instead of
+     matching one edge and clashing hard on the other). Still honored by
+     Chrome/Android and pre-26 Safari, but iOS 26 Safari dropped support for
+     this tag entirely and instead derives the color from the actual
+     background-color CSS of the sticky header (see Header.jsx's bg-headerMid
+     class) — kept here as a harmless fallback for other browsers, not as the
+     primary mechanism. The header gradient doesn't change between light/dark
+     mode, so this stays a static value. -->
+    <meta name="theme-color" content="#6e64c6" />
     <title>צעד קדימה</title>
     <script>
       (function () {

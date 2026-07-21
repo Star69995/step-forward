@@ -35,7 +35,7 @@ const Header = () => {
 
     if (!currentUser) {
         return (
-            <nav className="sticky top-0 z-50 shadow-lg bg-linear-to-r from-headerFrom to-headerTo" dir="rtl">
+            <nav className="sticky top-0 z-50 shadow-lg bg-headerMid bg-linear-to-r from-headerFrom to-headerTo" dir="rtl">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">
                     {logo}
                     <button className={navButtonClass("/login")} onClick={() => navigate("/login")}>
@@ -49,7 +49,7 @@ const Header = () => {
 
     return (
         <nav
-            className="sticky top-0 z-50 shadow-lg bg-linear-to-r from-headerFrom to-headerTo"
+            className="sticky top-0 z-50 shadow-lg bg-headerMid bg-linear-to-r from-headerFrom to-headerTo"
             dir="rtl"
         >
             <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">

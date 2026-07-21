@@ -11,6 +11,13 @@
   --color-danger: #b91c1c;
   --color-headerFrom: #667eea;
   --color-headerTo: #764ba2;
+  /* Flat midpoint blend of headerFrom/headerTo — not used in the visible
+   gradient itself, only as the invisible background-color the sticky
+   Header sets for iOS Safari's toolbar-tint sampling (see Header.jsx and
+   index.html): a solid color can never match a left-to-right gradient on
+   both edges, so the midpoint minimizes the worst-case seam instead of
+   matching one edge exactly and clashing hard on the other. */
+  --color-headerMid: #6e64c6;
 
   /* Neutral surface/text tokens — light values (default). Overridden for
    dark mode by :root[data-theme="dark"] below. Every component consumes

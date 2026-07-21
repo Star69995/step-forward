@@ -54,13 +54,20 @@ const Register = () => {
                 return;
             }
             if (!cancelled) setCheckingExisting(true);
-            const profile = await fetchUserProfile(currentUser.uid);
-            if (cancelled) return;
-            if (profile) {
-                navigate("/form", { replace: true });
-            } else {
-                setName(currentUser.displayName || "");
-                setNeedsRoleOnly(true);
+            try {
+                const profile = await fetchUserProfile(currentUser.uid);
+                if (cancelled) return;
+                if (profile) {
+                    navigate("/form", { replace: true });
+                } else {
+                    setName(currentUser.displayName || "");
+                    setNeedsRoleOnly(true);
+                    setCheckingExisting(false);
+                }
+            } catch (error) {
+                if (cancelled) return;
+                console.error(error);
+                toast.error("שגיאה בבדיקת החשבון, יש לנסות שוב", { position: "bottom-center" });
                 setCheckingExisting(false);
             }
         })();
@@ -90,18 +97,19 @@ const Register = () => {
         }
     };
 
+    // Signing in here is all this needs to do — the effect above already
+    // reacts to `currentUser` changing and decides where to route (straight
+    // to /form for an existing account, or reveal the role-only form for a
+    // brand-new one), so it must not be duplicated here too. Duplicating it
+    // meant two concurrent reads of the same freshly-created users/{uid} doc
+    // right after sign-in, and this copy had no error handling — the second
+    // read losing that race surfaced as an uncaught "Missing or insufficient
+    // permissions" toast instead of the other copy's page state just doing
+    // its job silently.
     const handleGoogleSignup = async () => {
         try {
             setLoading(true);
-            const { user } = await signInWithPopup(auth, provider);
-            const existingProfile = await fetchUserProfile(user.uid);
-            if (existingProfile) {
-                toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
-                navigate("/form");
-                return;
-            }
-            setName(user.displayName || "");
-            setNeedsRoleOnly(true);
+            await signInWithPopup(auth, provider);
         } catch (error) {
             toast.error("שגיאה בהרשמה עם Google: " + error.message, { position: "bottom-center" });
         } finally {
