@@ -6,6 +6,7 @@ import PDFButton from "../components/PDFButton";
 import { savePlan } from "../services/savePlan";
 import { useLocation, useNavigate } from "react-router-dom";
 import GoalSection from "../components/GoalSection";
+import TextField from "../components/ui/TextField";
 import useMediaQuery from "../services/useMediaQuery";
 import { loadPlan } from "../services/loadPlan";
 import { fetchShare } from "../services/useShares";
@@ -165,6 +166,12 @@ const FormPage = () => {
     // at that width do all three cards sit in one row, which is when a single
     // shared collapse control (instead of one per card) makes sense.
     const isShortGoalsRow = useMediaQuery("(min-width: 1024px)");
+
+    // Phone-width screens (Tailwind's "sm" breakpoint) default every card to
+    // collapsed so the page reads as a compact list of section headers
+    // instead of one long scroll — tablets/desktop keep everything open as
+    // before, since there's enough width for it not to matter.
+    const isMobile = !useMediaQuery("(min-width: 640px)");
 
     // A freshly-created plan gets its own URL right away so a page refresh
     // keeps pointing at the same document instead of minting another id.
@@ -339,7 +346,7 @@ const FormPage = () => {
                     </div>
 
                     {/* GENERAL INFO SECTION */}
-                    <CollapsibleSection title="פרטי התוכנית" icon={ClipboardList} accent="primary">
+                    <CollapsibleSection title="פרטי התוכנית" icon={ClipboardList} accent="primary" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
@@ -350,25 +357,23 @@ const FormPage = () => {
                                     <FormSection name="name" rows={1} showLabel={false} placeholder="השם המלא" />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
-                                        <Calendar size={16} aria-hidden="true" />
-                                        תחילת התהליך
-                                    </label>
-                                    <input
+                                    <TextField
+                                        as="input"
                                         type="date"
+                                        dense
+                                        icon={Calendar}
+                                        label="תחילת התהליך"
                                         {...methods.register("startDate")}
-                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted"
                                     />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
-                                        <Calendar size={16} aria-hidden="true" />
-                                        כתיבת התוכנית
-                                    </label>
-                                    <input
+                                    <TextField
+                                        as="input"
                                         type="date"
+                                        dense
+                                        icon={Calendar}
+                                        label="כתיבת התוכנית"
                                         {...methods.register("endDate")}
-                                        className="w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted"
                                     />
                                 </div>
                                 <div>
@@ -383,7 +388,7 @@ const FormPage = () => {
                     </CollapsibleSection>
 
                     {/* PAGE 1: PREPARATION */}
-                    <CollapsibleSection title="הכנה לתהליך" icon={Rocket} accent="success">
+                    <CollapsibleSection title="הכנה לתהליך" icon={Rocket} accent="success" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div>
@@ -478,7 +483,7 @@ const FormPage = () => {
                     </CollapsibleSection>
 
                     {/* PAGE 2: GOALS */}
-                    <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning">
+                    <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                                 <strong className="flex items-center gap-2 text-blue-700 mb-2">
@@ -610,6 +615,7 @@ const FormPage = () => {
                                         badgeColor="primary"
                                         viewMode={effectiveViewMode}
                                         canEdit={canEdit}
+                                        defaultOpen={!isMobile}
                                         ownerUid={ownerUid}
                                         planId={planId}
                                         goalKey="one"
@@ -634,6 +640,7 @@ const FormPage = () => {
                                         badgeColor="info"
                                         viewMode={effectiveViewMode}
                                         canEdit={canEdit}
+                                        defaultOpen={!isMobile}
                                         ownerUid={ownerUid}
                                         planId={planId}
                                         goalKey="two"
@@ -658,6 +665,7 @@ const FormPage = () => {
                                         badgeColor="success"
                                         viewMode={effectiveViewMode}
                                         canEdit={canEdit}
+                                        defaultOpen={!isMobile}
                                         ownerUid={ownerUid}
                                         planId={planId}
                                         goalKey="three"
@@ -680,7 +688,7 @@ const FormPage = () => {
                         title="הערות ועדכוני התקדמות"
                         icon={MessageSquare}
                         accent="info"
-                        defaultOpen
+                        defaultOpen={!isMobile}
                         className="pdf-hidden"
                     >
                         <CommentThread
@@ -745,7 +753,7 @@ const FormPage = () => {
                                 צפייה בלבד — אין הרשאת עריכה
                             </Badge>
                         )}
-                        <PDFButton targetId="formArea" autoTrigger={autoExport} />
+                        <PDFButton targetId="formArea" autoTrigger={autoExport} size="sm" />
                         {saveStatus === "pending" && (
                             <small className="text-muted text-xs sm:text-sm">יש שינויים שטרם נשמרו</small>
                         )}

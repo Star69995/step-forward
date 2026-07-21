@@ -4,7 +4,7 @@ import { FileDown } from "lucide-react";
 import { toast } from "react-toastify";
 import Button from "./ui/Button";
 
-const PDFButton = ({ targetId, autoTrigger = false }) => {
+const PDFButton = ({ targetId, autoTrigger = false, size = "md" }) => {
     const [isExporting, setIsExporting] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
 
@@ -142,6 +142,7 @@ const PDFButton = ({ targetId, autoTrigger = false }) => {
         <div className="relative inline-block">
             <Button
                 variant="success"
+                size={size}
                 icon={FileDown}
                 loading={isExporting}
                 loadingText="מייצא..."

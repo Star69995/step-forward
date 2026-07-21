@@ -32,6 +32,7 @@ const GoalSection = ({
     viewMode = false,
     canEdit = true,
     collapsible = true,
+    defaultOpen = true,
     ownerUid,
     planId,
     goalKey,
@@ -142,7 +143,7 @@ const GoalSection = ({
         <CollapsibleSection
             title={title || `מטרה לטווח קצר #${index}`}
             accentColor={accent}
-            defaultOpen
+            defaultOpen={defaultOpen}
             badge={badge}
         >
             {content}

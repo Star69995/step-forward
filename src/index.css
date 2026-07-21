@@ -180,6 +180,16 @@
     outline: none;
   }
 
+  /* Native date pickers (iOS Safari in particular) carry their own minimum
+   intrinsic content width, which a flex/grid item respects by default
+   regardless of an author `width: 100%` — so on a narrow phone the control
+   overflows its cell instead of shrinking into it like every other field.
+   Resetting min-width lets it size like a normal input everywhere it's used
+   (FormPage, Goal, CompletionCheck). */
+  input[type="date"] {
+    min-width: 0;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
