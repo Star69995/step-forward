@@ -22,15 +22,47 @@ export default defineConfig({
     VitePWA({
       mode: 'development',
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'צעד קדימה',
         short_name: 'צעד קדימה',
-        themeColor: '#a29bfe',
+        description: 'מילוי, שמירה וייצוא תוכנית אישית לקידום מטרות',
+        lang: 'he',
+        dir: 'rtl',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        // Splash-screen/toolbar background before CSS loads — matches
+        // --color-bg-page (light) in src/index.css; the header gradient
+        // (theme_color) doesn't change between light/dark mode.
+        background_color: '#f1f5f9',
+        theme_color: '#6e64c6',
         icons: [
           {
             src: 'favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
+          },
+          {
+            src: 'pwa-64x64.png',
+            sizes: '64x64',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           },
         ],
       },

@@ -37,6 +37,7 @@
 | Database       | [Firestore](https://firebase.google.com/docs/firestore)         |
 | PDF Export     | [html2pdf.js](https://www.npmjs.com/package/html2pdf.js)         |
 | Notifications  | [react-toastify](https://fkhadra.github.io/react-toastify/)     |
+| PWA            | [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) — manifest + service worker; אייקוני האתר (favicon/PWA/maskable/apple-touch-icon) נוצרים מ-`public/favicon.svg` ע"י [@vite-pwa/assets-generator](https://www.npmjs.com/package/@vite-pwa/assets-generator) |
 
 ---
 
@@ -72,6 +73,7 @@ npm run dev
 | `npm run build`    | בנייה לפרודקשן (לתיקיית `dist`)          |
 | `npm run preview`  | הרצת גרסת ה-build לצורך בדיקה מקומית     |
 | `npm run lint`     | הרצת בדיקת lint על כל הקוד               |
+| `npm run pwa:assets` | יצירה מחדש של כל אייקוני ה-PWA (favicon/PWA/maskable/apple-touch-icon) מתוך `public/favicon.svg` — יש להריץ אחרי כל שינוי בקובץ ה-SVG |
 | `npm run deploy`   | בנייה ופריסה ל-Firebase Hosting (production) |
 | `npm run deploy:preview` | בנייה ופריסה לערוץ preview זמני בשם `preview` ב-Firebase Hosting (להריץ עם שם ערוץ אחר: `npm run deploy:preview -- <שם-ערוץ>`) |
 | `npm run emulators` | הרצת אמולטורים מקומיים ל-Auth+Firestore (ראו סעיף הבא) |

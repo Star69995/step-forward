@@ -61,6 +61,15 @@
 - יש להשתמש ב-breakpoints הסטנדרטיים של Tailwind (`sm:`, `md:`, `lg:`) ולא בפתרונות מותאמים חד-פעמיים למסך מסוים.
 - לפני סגירת משימת UI, יש לוודא ידנית (או לפחות בבדיקת responsive באמולטור/דפדפן) שהעמוד תקין גם ברוחב טאבלט וגם ברוחב טלפון.
 
+## PWA ואייקוני האתר
+
+האתר הוא PWA מלא (ניתן להתקנה על מסך הבית באנדרואיד ובאייפון, עובד גם במצב לא-מקוון חלקי):
+
+- ה-manifest (שם, צבעים, אייקונים, `display: standalone`, `dir: rtl`) מוגדר במלואו כאובייקט `manifest` בתוך ה-plugin `VitePWA` ב-[vite.config.js](vite.config.js) — **אין** קובץ `public/manifest.json` נפרד; `dist/manifest.webmanifest` נוצר אוטומטית מתוך ההגדרה הזו בזמן `build`. רישום ה-service worker מתבצע ידנית ב-[main.jsx](src/main.jsx) (`registerSW` מ-`virtual:pwa-register`), ולכן אין להוסיף גם `injectRegister` אוטומטי — זה ייצור רישום כפול.
+- כל אייקוני האתר (favicon, אייקוני PWA לאנדרואיד בגדלים 64/192/512, אייקון maskable ל-512, ו-apple-touch-icon 180x180 לאייפון) נוצרים **פעם אחת ממקור יחיד** — [public/favicon.svg](public/favicon.svg) — על ידי `npm run pwa:assets` (ראו [pwa-assets.config.js](pwa-assets.config.js), חבילת `@vite-pwa/assets-generator`). כדי לשנות את הלוגו/אייקון האתר: עורכים רק את `favicon.svg` ומריצים מחדש את הפקודה — **אסור** להוסיף/לערוך קובצי PNG של אייקונים ידנית בתיקיית `public/`, וגם לא ליצור מקור SVG נוסף במקום אחר.
+- הוחלט **לא** לייצר מסכי פתיחה (splash screens) של אפל (`combinePresetAndAppleSplashScreens`) — אפשרות שקיימת בכלי היצירה אך מייצרת כ-70 קובצי PNG (מעל 5MB) עבור כל שילוב מכשיר/כיוון/מצב תצוגה, תוספת משקל שלא מצדיקה את עצמה בפרויקט בגודל הזה. במקומם, אייפון מציג מסך פתיחה פשוט לפי `background_color`/`theme_color` שבמניפסט. יש לשקול מחדש רק אם תהיה דרישת מוצר מפורשת למסכי פתיחה מותאמים.
+- לא להשתמש ב-`dark:`/`prefers-color-scheme` בתוך ה-manifest או האייקונים עצמם — האייקון הוא אחיד לשני המצבים (בהיר/כהה), עקבי עם עיצוב הגרדיאנט הקבוע של הכותרת (ראו סעיף מצב תצוגה למעלה).
+
 ## סוגי משתמשים, שיתוף והרשאות
 
 - לכל משתמש יש `role` קבוע שנקבע בהרשמה ([Register.jsx](src/pages/Register.jsx)) ונשמר במסמך `users/{uid}` (ראו [userProfile.js](src/services/userProfile.js)): `recipient` (מקבל/ת שירות, בעל/ת התוכניות) או `provider` (נותן/ת שירות, מלווה תוכניות ששותפו). התפקיד לא ניתן לשינוי עצמי לאחר ההרשמה (גם ברמת [firestore.rules](firestore.rules)) — אין להוסיף מסך "שינוי תפקיד" בלי לעדכן גם את החוק המתאים.
