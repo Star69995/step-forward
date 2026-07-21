@@ -21,20 +21,29 @@ export const usePlans = (uid) => {
         let cancelled = false;
         const fetchPlans = async () => {
             setLoading(true);
-            const plansRef = collection(db, `users/${uid}/plans`);
-            const snap = await getDocs(plansRef);
-            const plansData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            // Newest-created plan first, everywhere plans are listed.
-            plansData.sort(
-                (a, b) => (b.createdAt?.toDate() || new Date(0)) - (a.createdAt?.toDate() || new Date(0))
-            );
-            const { active, trashed } = splitByTrash(plansData);
-            if (!cancelled) {
-                setPlans(active);
-                setTrashedPlans(trashed);
+            try {
+                const plansRef = collection(db, `users/${uid}/plans`);
+                const snap = await getDocs(plansRef);
+                const plansData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                // Newest-created plan first, everywhere plans are listed.
+                plansData.sort(
+                    (a, b) => (b.createdAt?.toDate() || new Date(0)) - (a.createdAt?.toDate() || new Date(0))
+                );
+                const { active, trashed } = splitByTrash(plansData);
+                if (!cancelled) {
+                    setPlans(active);
+                    setTrashedPlans(trashed);
+                    setLoading(false);
+                }
+                purgeExpired(trashed, (plan) => doc(db, `users/${uid}/plans/${plan.id}`));
+            } catch (error) {
+                // A logged-out user (or a permission change mid-flight) can
+                // reject this read after the effect already tore down — not a
+                // real failure worth surfacing once the caller stopped caring.
+                if (cancelled) return;
+                console.error(error);
                 setLoading(false);
             }
-            purgeExpired(trashed, (plan) => doc(db, `users/${uid}/plans/${plan.id}`));
         };
         fetchPlans();
 

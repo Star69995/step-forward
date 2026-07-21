@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Footprints, FileText, User, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "../context/useAuth";
 import PlanSwitcher from "./PlanSwitcher";
 import ProviderSwitcher from "./ProviderSwitcher";
 import RoleBadge from "./RoleBadge";
+import ConfirmDialog from "./ui/ConfirmDialog";
 
 const Header = () => {
     const { currentUser, role, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [confirmingLogout, setConfirmingLogout] = useState(false);
 
     const isActive = (path) => location.pathname === path;
 
@@ -85,13 +87,26 @@ const Header = () => {
 
                     <button
                         className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 bg-white/15 text-white border-2 border-white/40 hover:bg-danger/30 hover:border-danger"
-                        onClick={logout}
+                        onClick={() => setConfirmingLogout(true)}
                     >
                         <LogOut size={16} aria-hidden="true" />
                         יציאה
                     </button>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={confirmingLogout}
+                title="יציאה מהחשבון"
+                message="האם להתנתק מהחשבון?"
+                confirmLabel="יציאה"
+                cancelLabel="ביטול"
+                onConfirm={() => {
+                    setConfirmingLogout(false);
+                    logout();
+                }}
+                onCancel={() => setConfirmingLogout(false)}
+            />
         </nav>
     );
 };

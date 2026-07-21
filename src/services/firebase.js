@@ -26,6 +26,10 @@ export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
 // (see .env.example) rather than always-on so a normal `npm run dev` still
 // talks to the real project.
 if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === "true") {
-    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    // Use the hostname the page was loaded from (not a hardcoded
+    // 127.0.0.1) so this also works when the dev server is opened from
+    // another device on the LAN via the host machine's IP.
+    const emulatorHost = window.location.hostname;
+    connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true });
+    connectFirestoreEmulator(db, emulatorHost, 8080);
 }

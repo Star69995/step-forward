@@ -19,10 +19,16 @@ export const usePlanVersions = (ownerUid, planId) => {
         let cancelled = false;
         const fetchVersions = async () => {
             setLoading(true);
-            const versionsRef = collection(db, `users/${ownerUid}/plans/${planId}/versions`);
-            const snap = await getDocs(query(versionsRef, orderBy("startedAt", "asc")));
-            if (!cancelled) {
-                setVersions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            try {
+                const versionsRef = collection(db, `users/${ownerUid}/plans/${planId}/versions`);
+                const snap = await getDocs(query(versionsRef, orderBy("startedAt", "asc")));
+                if (!cancelled) {
+                    setVersions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+                    setLoading(false);
+                }
+            } catch (error) {
+                if (cancelled) return;
+                console.error(error);
                 setLoading(false);
             }
         };

@@ -4,6 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    // Bind to all network interfaces (not just localhost) so the dev
+    // server is reachable from other devices on the same LAN.
+    host: true,
+  },
   resolve: {
     // html2pdf.js requires "html2canvas" internally; html2canvas itself can't
     // parse the oklab()/color-mix() colors Tailwind v4 emits for gradients and

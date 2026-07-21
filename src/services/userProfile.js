@@ -41,12 +41,12 @@ export const updateUserProfile = async (uid, fields) => {
 // forces a fresh token so the `email_verified` claim firestore.rules checks
 // is actually up to date, instead of silently failing on a stale token.
 export const ensureEmailIndex = async (user, role, displayName) => {
-    await user.reload();
-    if (!user.email || !user.emailVerified) return;
-    await user.getIdToken(true);
-
-    const emailId = user.email.toLowerCase();
     try {
+        await user.reload();
+        if (!user.email || !user.emailVerified) return;
+        await user.getIdToken(true);
+
+        const emailId = user.email.toLowerCase();
         await setDoc(
             doc(db, `emailIndex/${emailId}`),
             { uid: user.uid, role, displayName: displayName || "", email: emailId },

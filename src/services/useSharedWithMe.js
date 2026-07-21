@@ -18,21 +18,29 @@ export const useSharedWithMe = (providerUid) => {
         let cancelled = false;
         const fetchShares = async () => {
             setLoading(true);
-            const snap = await getDocs(query(collectionGroup(db, "shares"), where("providerUid", "==", providerUid)));
-            const shares = snap.docs.map((d) => ({
-                // A recipient's shares subcollection lives at users/{recipientUid}/shares/{providerUid}.
-                recipientUid: d.ref.parent.parent.id,
-                ...d.data(),
-            }));
-            // Filtered client-side rather than with a deletedAt Firestore
-            // filter: a `where("deletedAt", "==", null)` clause would silently
-            // exclude any share document that predates this field entirely
-            // (missing != null in Firestore), which would hide pre-existing
-            // shares. This query is already scoped to one provider's own
-            // grants, so the extra client-side split costs nothing.
-            const { active } = splitByTrash(shares);
-            if (!cancelled) {
-                setRecipients(active);
+            try {
+                const snap = await getDocs(
+                    query(collectionGroup(db, "shares"), where("providerUid", "==", providerUid))
+                );
+                const shares = snap.docs.map((d) => ({
+                    // A recipient's shares subcollection lives at users/{recipientUid}/shares/{providerUid}.
+                    recipientUid: d.ref.parent.parent.id,
+                    ...d.data(),
+                }));
+                // Filtered client-side rather than with a deletedAt Firestore
+                // filter: a `where("deletedAt", "==", null)` clause would silently
+                // exclude any share document that predates this field entirely
+                // (missing != null in Firestore), which would hide pre-existing
+                // shares. This query is already scoped to one provider's own
+                // grants, so the extra client-side split costs nothing.
+                const { active } = splitByTrash(shares);
+                if (!cancelled) {
+                    setRecipients(active);
+                    setLoading(false);
+                }
+            } catch (error) {
+                if (cancelled) return;
+                console.error(error);
                 setLoading(false);
             }
         };

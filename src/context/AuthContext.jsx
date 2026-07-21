@@ -29,10 +29,19 @@ export const AuthProvider = ({ children }) => {
                 if (!cancelled) setUserProfile(null);
                 return;
             }
-            const profile = await fetchUserProfile(currentUser.uid);
-            if (cancelled) return;
-            setUserProfile(profile);
-            if (profile) ensureEmailIndex(currentUser, profile.role, profile.displayName);
+            try {
+                const profile = await fetchUserProfile(currentUser.uid);
+                if (cancelled) return;
+                setUserProfile(profile);
+                if (profile) ensureEmailIndex(currentUser, profile.role, profile.displayName);
+            } catch (error) {
+                // A sign-out mid-fetch (or a revoked session) rejects this
+                // read after the effect stopped caring — nothing to show the
+                // user for a profile they're no longer viewing.
+                if (cancelled) return;
+                console.error(error);
+                setUserProfile(null);
+            }
         })();
 
         return () => {
@@ -40,7 +49,14 @@ export const AuthProvider = ({ children }) => {
         };
     }, [currentUser]);
 
-    const logout = async () => await signOut(auth);
+    const logout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error(error);
+            toast.error("שגיאה בהתנתקות, יש לנסות שוב");
+        }
+    };
 
     // Anything other than the literal "compact" (including logged-out or an
     // existing account with no density field yet) renders as the original

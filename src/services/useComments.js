@@ -21,16 +21,22 @@ export const useComments = (ownerUid, planId) => {
         let cancelled = false;
         const fetchComments = async () => {
             setLoading(true);
-            const commentsRef = collection(db, `users/${ownerUid}/plans/${planId}/comments`);
-            const snap = await getDocs(query(commentsRef, orderBy("createdAt", "asc")));
-            const commentsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            const { active, trashed } = splitByTrash(commentsData);
-            if (!cancelled) {
-                setComments(active);
-                setTrashedComments(trashed);
+            try {
+                const commentsRef = collection(db, `users/${ownerUid}/plans/${planId}/comments`);
+                const snap = await getDocs(query(commentsRef, orderBy("createdAt", "asc")));
+                const commentsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                const { active, trashed } = splitByTrash(commentsData);
+                if (!cancelled) {
+                    setComments(active);
+                    setTrashedComments(trashed);
+                    setLoading(false);
+                }
+                purgeExpired(trashed, (comment) => doc(db, `users/${ownerUid}/plans/${planId}/comments/${comment.id}`));
+            } catch (error) {
+                if (cancelled) return;
+                console.error(error);
                 setLoading(false);
             }
-            purgeExpired(trashed, (comment) => doc(db, `users/${ownerUid}/plans/${planId}/comments/${comment.id}`));
         };
         fetchComments();
 

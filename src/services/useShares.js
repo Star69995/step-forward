@@ -19,15 +19,21 @@ export const useShares = (recipientUid) => {
         let cancelled = false;
         const fetchShares = async () => {
             setLoading(true);
-            const snap = await getDocs(collection(db, `users/${recipientUid}/shares`));
-            const sharesData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            const { active, trashed } = splitByTrash(sharesData);
-            if (!cancelled) {
-                setShares(active);
-                setTrashedShares(trashed);
+            try {
+                const snap = await getDocs(collection(db, `users/${recipientUid}/shares`));
+                const sharesData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                const { active, trashed } = splitByTrash(sharesData);
+                if (!cancelled) {
+                    setShares(active);
+                    setTrashedShares(trashed);
+                    setLoading(false);
+                }
+                purgeExpired(trashed, (share) => doc(db, `users/${recipientUid}/shares/${share.id}`));
+            } catch (error) {
+                if (cancelled) return;
+                console.error(error);
                 setLoading(false);
             }
-            purgeExpired(trashed, (share) => doc(db, `users/${recipientUid}/shares/${share.id}`));
         };
         fetchShares();
 

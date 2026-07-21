@@ -38,6 +38,7 @@ const Profile = () => {
     const { plans, trashedPlans, loading, setPlans, setTrashedPlans } = usePlans(currentUser?.uid);
     const [deleting, setDeleting] = useState(null);
     const [pendingDelete, setPendingDelete] = useState(null);
+    const [confirmingLogout, setConfirmingLogout] = useState(false);
     const [emailVerified, setEmailVerified] = useState(currentUser?.emailVerified ?? false);
     const [sendingVerification, setSendingVerification] = useState(false);
     const navigate = useNavigate();
@@ -47,7 +48,16 @@ const Profile = () => {
     // user in place, so the local state is re-read from it afterwards.
     useEffect(() => {
         if (!currentUser) return;
-        currentUser.reload().then(() => setEmailVerified(currentUser.emailVerified));
+        let cancelled = false;
+        currentUser
+            .reload()
+            .then(() => {
+                if (!cancelled) setEmailVerified(currentUser.emailVerified);
+            })
+            .catch((error) => console.error(error));
+        return () => {
+            cancelled = true;
+        };
     }, [currentUser]);
 
     const handleResendVerification = async () => {
@@ -191,7 +201,12 @@ const Profile = () => {
                                     ניהול גישה לנותני השירות שלי
                                 </Button>
                             )}
-                            <Button variant="danger" icon={LogOut} rounded="rounded-lg" onClick={logout}>
+                            <Button
+                                variant="danger"
+                                icon={LogOut}
+                                rounded="rounded-lg"
+                                onClick={() => setConfirmingLogout(true)}
+                            >
                                 התנתקות
                             </Button>
                         </div>
@@ -297,6 +312,19 @@ const Profile = () => {
                 loading={!!deleting}
                 onConfirm={handleDelete}
                 onCancel={() => setPendingDelete(null)}
+            />
+
+            <ConfirmDialog
+                open={confirmingLogout}
+                title="יציאה מהחשבון"
+                message="האם להתנתק מהחשבון?"
+                confirmLabel="יציאה"
+                cancelLabel="ביטול"
+                onConfirm={() => {
+                    setConfirmingLogout(false);
+                    logout();
+                }}
+                onCancel={() => setConfirmingLogout(false)}
             />
         </div>
     );
