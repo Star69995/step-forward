@@ -120,7 +120,7 @@ const Login = () => {
                 <div className="bg-surface-muted px-8 py-6 border-t border-border text-center">
                     <small className="text-body">
                         אין עדיין חשבון?{" "}
-                        <Link to="/register" className="font-bold text-secondary transition hover:text-purple-800">
+                        <Link to="/register" className="font-bold text-secondary transition hover:opacity-75">
                             מעבר להרשמה
                         </Link>
                     </small>

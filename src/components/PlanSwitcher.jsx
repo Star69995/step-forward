@@ -36,7 +36,7 @@ const PlanSwitcher = () => {
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                     <div
                         dir="rtl"
-                        className="absolute left-0 mt-2 w-72 bg-surface rounded-xl shadow-2xl z-50 overflow-hidden text-right"
+                        className="absolute left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-surface rounded-xl shadow-2xl z-50 overflow-hidden text-right"
                     >
                         <div className="max-h-72 overflow-y-auto">
                             {loading ? (

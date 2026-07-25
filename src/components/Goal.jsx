@@ -26,7 +26,7 @@ const Goal = ({ baseName, index, color = colors.primary, viewMode = false, canEd
         <div
             className="pdf-avoid-break rounded-lg p-5 mb-4 transition hover:shadow-md border-r-4"
             style={{
-                backgroundColor: `color-mix(in srgb, ${color} 8%, white)`,
+                backgroundColor: `color-mix(in srgb, ${color} 8%, var(--color-surface))`,
                 borderRightColor: color,
             }}
         >

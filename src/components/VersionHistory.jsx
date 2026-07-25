@@ -82,9 +82,9 @@ const VersionHistory = ({ ownerUid, planId, canEdit, editor, onReverted }) => {
             className="pdf-hidden"
         >
             {loading ? (
-                <p className="text-sm text-gray-500">טוען היסטוריה...</p>
+                <p className="text-sm text-muted">טוען היסטוריה...</p>
             ) : versions.length === 0 ? (
-                <p className="text-sm text-gray-500">אין עדיין היסטוריית שינויים</p>
+                <p className="text-sm text-muted">אין עדיין היסטוריית שינויים</p>
             ) : (
                 <ul className="flex flex-col gap-3">
                     {newestFirst.map((version, i) => {
@@ -98,16 +98,16 @@ const VersionHistory = ({ ownerUid, planId, canEdit, editor, onReverted }) => {
                         const roleMeta = ROLE_META[version.editedByRole];
 
                         return (
-                            <li key={version.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <li key={version.id} className="bg-surface-muted rounded-lg p-3 text-sm">
                                 <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                                     <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="font-semibold text-gray-800">{version.editedByName}</span>
+                                        <span className="font-semibold text-heading">{version.editedByName}</span>
                                         {roleMeta && (
                                             <Badge variant={roleMeta.variant} icon={roleMeta.icon}>
                                                 {roleMeta.label}
                                             </Badge>
                                         )}
-                                        <span className="text-gray-400 text-xs">
+                                        <span className="text-muted text-xs">
                                             {formatRange(version.startedAt, version.updatedAt)}
                                         </span>
                                     </div>
@@ -131,15 +131,15 @@ const VersionHistory = ({ ownerUid, planId, canEdit, editor, onReverted }) => {
                                 )}
 
                                 {!previous ? (
-                                    <p className="text-gray-600">גרסה ראשונית — יצירת התוכנית</p>
+                                    <p className="text-body">גרסה ראשונית — יצירת התוכנית</p>
                                 ) : diffs.length === 0 ? (
-                                    <p className="text-gray-500">לא זוהו שינויים בתוכן</p>
+                                    <p className="text-muted">לא זוהו שינויים בתוכן</p>
                                 ) : (
                                     <ul className="flex flex-col gap-1.5">
                                         {diffs.map((d) => (
-                                            <li key={d.path} className="text-gray-700 wrap-break-word">
+                                            <li key={d.path} className="text-body wrap-break-word">
                                                 <span className="font-semibold">{labelForPath(d.path)}:</span>{" "}
-                                                <span className="text-gray-400 line-through">
+                                                <span className="text-muted line-through">
                                                     {formatValue(d.before)}
                                                 </span>{" "}
                                                 ← <span>{formatValue(d.after)}</span>

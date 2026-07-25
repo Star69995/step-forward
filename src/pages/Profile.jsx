@@ -136,10 +136,10 @@ const Profile = () => {
                 {/* Header Section */}
                 <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
                     <div className="flex justify-between items-start gap-4 flex-wrap">
-                        <div>
-                            <h2 className="flex items-center gap-2 text-3xl font-bold text-heading mb-1">
-                                <User size={26} aria-hidden="true" />
-                                שלום, {currentUser?.displayName || currentUser?.email}
+                        <div className="min-w-0">
+                            <h2 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold text-heading mb-1 flex-wrap">
+                                <User size={26} className="shrink-0" aria-hidden="true" />
+                                <span className="wrap-break-word">שלום, {currentUser?.displayName || currentUser?.email}</span>
                                 <RoleBadge role={role} />
                             </h2>
                             <small className="text-muted">{currentUser?.email}</small>
@@ -190,7 +190,7 @@ const Profile = () => {
                                 />
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             {role === "recipient" && (
                                 <Button
                                     variant="outline"
@@ -255,12 +255,13 @@ const Profile = () => {
 
                                     {/* Card Body */}
                                     <div className="px-6 py-4">
-                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                        <div className="flex flex-col gap-3 mb-3">
                                             <Button
-                                                variant="blue"
+                                                variant="info"
                                                 size="sm"
                                                 rounded="rounded-lg"
                                                 icon={Eye}
+                                                fullWidth
                                                 onClick={() => openPlan(plan)}
                                             >
                                                 הצגה
@@ -270,6 +271,7 @@ const Profile = () => {
                                                 size="sm"
                                                 rounded="rounded-lg"
                                                 icon={FileDown}
+                                                fullWidth
                                                 onClick={() => exportPlan(plan)}
                                             >
                                                 ייצוא ל-PDF

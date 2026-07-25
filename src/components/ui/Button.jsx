@@ -4,11 +4,22 @@ import Spinner from "./Spinner";
 // Neutral elevation (shadow-md/lg) rather than a colored glow, and darker
 // two-tone gradients within one hue — reads as institutional, not a
 // consumer-app "neon" button.
+// primary/secondary intentionally lighten in dark mode (see index.css) since
+// they also serve as direct text color on dark surfaces — but that same
+// lightening leaves white button text under ~2.7:1 contrast if used as-is
+// for a solid button background. Darkening both gradient stops by mixing in
+// black keeps the button legible in both themes without touching the shared
+// token (light mode barely changes; dark mode's lighter tint gets pulled
+// back down to a readable shade).
 const VARIANTS = {
-    primary: "bg-linear-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg",
-    success: "bg-linear-to-r from-success to-teal-800 text-white shadow-md hover:shadow-lg",
-    danger: "bg-linear-to-r from-danger to-red-800 text-white shadow-md hover:shadow-lg",
-    blue: "bg-linear-to-r from-blue-700 to-blue-900 text-white shadow-md hover:shadow-lg",
+    primary:
+        "bg-linear-to-r from-[color-mix(in_srgb,var(--color-primary)_65%,black)] to-[color-mix(in_srgb,var(--color-secondary)_65%,black)] text-white shadow-md hover:shadow-lg",
+    success:
+        "bg-linear-to-r from-success to-[color-mix(in_srgb,var(--color-success)_65%,black)] text-white shadow-md hover:shadow-lg",
+    danger:
+        "bg-linear-to-r from-danger to-[color-mix(in_srgb,var(--color-danger)_65%,black)] text-white shadow-md hover:shadow-lg",
+    info:
+        "bg-linear-to-r from-info to-[color-mix(in_srgb,var(--color-info)_65%,black)] text-white shadow-md hover:shadow-lg",
     outline: "bg-surface text-heading border-2 border-border hover:border-primary shadow-xs hover:shadow-md",
 };
 

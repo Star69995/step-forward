@@ -322,9 +322,9 @@ const FormPage = () => {
                     style={actionBarHeight ? { paddingBottom: `${actionBarHeight + 16}px` } : undefined}
                 >
                     {!isOwner && (
-                        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-blue-50 border-r-4 border-blue-400 pdf-hidden">
-                            <Users size={16} className="text-blue-700 shrink-0" aria-hidden="true" />
-                            <span className="text-sm text-blue-800">
+                        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-info/10 border-r-4 border-info pdf-hidden">
+                            <Users size={16} className="text-info shrink-0" aria-hidden="true" />
+                            <span className="text-sm text-info">
                                 {ownerName ? `צפייה בתוכנית של ${ownerName}` : "צפייה בתוכנית משותפת"}
                             </span>
                         </div>
@@ -455,7 +455,7 @@ const FormPage = () => {
 
                                 <div className="lg:col-span-3 bg-surface-muted p-4 rounded-lg">
                                     <div className="flex items-center mb-2 gap-2">
-                                        <span className="bg-gray-600 text-white p-1.5 rounded-sm">
+                                        <span className="bg-secondary text-white p-1.5 rounded-sm">
                                             <Dumbbell size={14} aria-hidden="true" />
                                         </span>
                                         <label className="font-semibold text-sm text-heading">כוחות ומשאבים?</label>
@@ -485,8 +485,8 @@ const FormPage = () => {
                     {/* PAGE 2: GOALS */}
                     <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
-                            <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                                <strong className="flex items-center gap-2 text-blue-700 mb-2">
+                            <div className="pdf-avoid-break mb-6 p-4 bg-info/10 rounded-lg border-l-4 border-info">
+                                <strong className="flex items-center gap-2 text-info mb-2">
                                     <MapPin size={18} aria-hidden="true" />
                                     מטרה לטווח ארוך
                                     <InfoHint text="מטרה משמעותית שהתהליך של שישה החודשים הקרובים אמור לקדם." />
@@ -494,8 +494,8 @@ const FormPage = () => {
                                 <FormSection name="longTermGoal" label="הגדרת המטרה:" rows={3} />
                             </div>
 
-                            <div className="pdf-avoid-break mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                                <strong className="flex items-center gap-2 text-blue-700 mb-2">
+                            <div className="pdf-avoid-break mb-6 p-4 bg-info/10 rounded-lg border-l-4 border-info">
+                                <strong className="flex items-center gap-2 text-info mb-2">
                                     <Telescope size={18} aria-hidden="true" />
                                     מטרת-על (תמונת עתיד)
                                     <InfoHint text="כיצד ייראו החיים בעוד כמה שנים אם התהליך יצליח? מה ישתנה?" />
@@ -595,8 +595,8 @@ const FormPage = () => {
                             </CollapsibleSection>
                         ) : (
                             <>
-                                <div className="pdf-avoid-break mb-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                                    <strong className="flex items-center gap-2 text-green-700">
+                                <div className="pdf-avoid-break mb-4 p-4 bg-success/10 rounded-lg border-l-4 border-success">
+                                    <strong className="flex items-center gap-2 text-success">
                                         <Zap size={18} aria-hidden="true" />
                                         מטרות לטווח קצר (6 חודשים)
                                     </strong>

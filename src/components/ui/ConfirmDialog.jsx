@@ -17,15 +17,15 @@ const ConfirmDialog = ({
 
     return (
         <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
             dir="rtl"
             role="dialog"
             aria-modal="true"
         >
-            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-[var(--space-card-pad)] fade-in">
-                {title && <h3 className="text-lg font-bold text-heading mb-2">{title}</h3>}
-                {message && <p className="text-body mb-6">{message}</p>}
-                <div className="flex gap-3 justify-end">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-[var(--space-card-pad)] fade-in">
+                {title && <h3 className="text-lg font-bold text-heading mb-2 wrap-break-word">{title}</h3>}
+                {message && <p className="text-body mb-6 wrap-break-word">{message}</p>}
+                <div className="flex gap-3 justify-end flex-wrap">
                     <Button
                         variant="outline"
                         size="sm"

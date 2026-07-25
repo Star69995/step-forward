@@ -77,7 +77,7 @@ const TrashSection = ({
                                             {daysRemaining(item.deletedAt)} ימים למחיקה סופית
                                         </Badge>
                                     </div>
-                                    <div className="flex gap-2 shrink-0">
+                                    <div className="flex gap-2 flex-wrap">
                                         <Button
                                             variant="success"
                                             size="sm"

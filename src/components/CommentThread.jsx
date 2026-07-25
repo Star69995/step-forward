@@ -4,6 +4,7 @@ import { useAuth } from "../context/useAuth";
 import { addComment, deleteComment, restoreComment, deleteCommentForever } from "../services/useComments";
 import { ROLE_META } from "../services/roles";
 import Button from "./ui/Button";
+import TextField from "./ui/TextField";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import TrashSection from "./ui/TrashSection";
 import { MessageSquare, Send, Trash2 } from "lucide-react";
@@ -143,16 +144,18 @@ const CommentThread = ({
             )}
 
             <form onSubmit={handleSubmit} className="flex gap-2">
-                <input
+                <TextField
+                    as="input"
                     type="text"
+                    dense
+                    className="flex-1"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="הוספת הערה..."
-                    className="flex-1 px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition"
                     disabled={submitting}
                 />
-                <Button type="submit" size="sm" variant="primary" icon={Send} loading={submitting}>
-                    שליחה
+                <Button type="submit" size="sm" variant="primary" icon={Send} loading={submitting} className="shrink-0">
+                    <span className="hidden sm:inline">שליחה</span>
                 </Button>
             </form>
 

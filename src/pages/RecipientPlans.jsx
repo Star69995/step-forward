@@ -73,8 +73,8 @@ const RecipientPlans = () => {
             <div className="max-w-4xl mx-auto px-4">
                 <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
                     <div className="flex justify-between items-center gap-4 flex-wrap">
-                        <h2 className="flex items-center gap-2 text-2xl font-bold text-heading">
-                            <ClipboardList size={24} aria-hidden="true" />
+                        <h2 className="flex items-center gap-2 text-2xl font-bold text-heading min-w-0 wrap-break-word">
+                            <ClipboardList size={24} className="shrink-0" aria-hidden="true" />
                             התוכניות של {recipientLabel}
                         </h2>
                         <Badge variant={share.permission === "edit" ? "success" : "info"} icon={share.permission === "edit" ? ShieldCheck : Eye}>
@@ -106,7 +106,7 @@ const RecipientPlans = () => {
                                     </h5>
                                 </div>
                                 <div className="px-6 py-4">
-                                    <Button variant="blue" size="sm" rounded="rounded-lg" fullWidth onClick={() => openPlan(plan)}>
+                                    <Button variant="info" size="sm" rounded="rounded-lg" fullWidth onClick={() => openPlan(plan)}>
                                         פתיחת התוכנית
                                     </Button>
                                 </div>

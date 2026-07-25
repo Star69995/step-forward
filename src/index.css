@@ -166,7 +166,7 @@
    focus without each component re-implementing its own JS handlers. */
   .accent-field {
     border-width: 2px;
-    border-color: rgb(224 224 224);
+    border-color: var(--color-border);
     transition:
       border-color 0.15s ease,
       box-shadow 0.15s ease,

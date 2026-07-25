@@ -1,7 +1,7 @@
 import React from "react";
 
 const DENSE_CLASS =
-    "w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted";
+    "w-full px-3 py-[var(--space-field-dense-y)] border-2 border-border rounded-lg bg-surface-muted text-heading placeholder:text-muted focus:border-primary focus:outline-hidden text-sm transition disabled:bg-surface-muted disabled:text-muted";
 
 const FULL_CLASS =
     "w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] border-2 border-border rounded-lg bg-surface-muted text-heading font-sans transition focus:border-secondary focus:outline-hidden focus:ring-2 focus:ring-secondary/10 focus:bg-surface hover:border-border disabled:bg-surface-muted disabled:text-muted";

@@ -157,7 +157,7 @@ const PDFButton = ({ targetId, autoTrigger = false, size = "md" }) => {
                     style={{ transform: "translateY(8px)" }}
                 >
                     <div
-                        className="h-full bg-linear-to-r from-success to-emerald-600 transition-all"
+                        className="h-full bg-linear-to-r from-success to-[color-mix(in_srgb,var(--color-success)_65%,black)] transition-all"
                         style={{ width: `${exportProgress}%` }}
                     ></div>
                 </div>
