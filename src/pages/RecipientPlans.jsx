@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { usePlans, formatPlanLabel } from "../services/usePlans";
 import { fetchShare } from "../services/useShares";
+import { isSyntheticEmail } from "../services/anonymousAccount";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import Spinner from "../components/ui/Spinner";
@@ -34,11 +35,15 @@ const RecipientPlans = () => {
         };
     }, [recipientUid, currentUser]);
 
-    const recipientLabel = share?.recipientDisplayName || share?.recipientEmail || "מקבל השירות";
+    const recipientLabel =
+        share?.recipientLabel ||
+        share?.recipientDisplayName ||
+        (share?.recipientEmail && !isSyntheticEmail(share.recipientEmail) ? share.recipientEmail : null) ||
+        "מקבל השירות";
 
     const openPlan = (plan) => {
         navigate(`/form?planId=${plan.id}&ownerUid=${recipientUid}`, {
-            state: { planData: plan, ownerName: recipientLabel },
+            state: { planData: plan, ownerName: recipientLabel, ownerIsAnonymous: !!share?.recipientIsAnonymous },
         });
     };
 

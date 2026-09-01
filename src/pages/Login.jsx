@@ -3,23 +3,27 @@ import { auth, provider } from "../services/firebase";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Footprints, Lock, LogIn, Mail } from "lucide-react";
+import { Footprints, Lock, LogIn, Mail, AtSign } from "lucide-react";
 import Button from "../components/ui/Button";
 import TextField from "../components/ui/TextField";
+import SegmentedToggle from "../components/ui/SegmentedToggle";
 import { fetchUserProfile } from "../services/userProfile";
+import { syntheticEmailForUsername } from "../services/anonymousAccount";
 
 const Login = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState("");
+    const [method, setMethod] = useState("email"); // "email" | "username"
+    const [identifier, setIdentifier] = useState(""); // email or username, depending on method
     const [password, setPassword] = useState("");
 
     // Google sign-in auto-creates the Firebase Auth account for a brand-new
-    // user too — if there's no users/{uid} profile doc yet, send them to
-    // /register to pick a role instead of dropping them straight into /form.
+    // user too — if there's no users/{uid} profile doc yet, or the profile
+    // is missing a username (e.g. it predates this feature), send them to
+    // /register to complete it instead of dropping them straight into /form.
     const goToAppOrFinishRegistration = async (user) => {
         const profile = await fetchUserProfile(user.uid);
-        navigate(profile ? "/form" : "/register");
+        navigate(profile && profile.username ? "/form" : "/register");
     };
 
     const handleGoogleLogin = async () => {
@@ -38,19 +42,26 @@ const Login = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        if (!email || !password) {
+        if (!identifier || !password) {
             toast.error("יש למלא את כל השדות", { position: "bottom-center" });
             return;
         }
 
+        // Username-based login never needs a Firestore lookup — the account's
+        // Auth email is deterministically derived from the username at
+        // signup (see anonymousAccount.js), so it's simply recomputed here.
+        const email = method === "username" ? syntheticEmailForUsername(identifier) : identifier;
+
         try {
             setLoading(true);
-            await signInWithEmailAndPassword(auth, email, password);
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
             toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
-            navigate("/form");
+            await goToAppOrFinishRegistration(user);
         } catch (error) {
             if (error.code === "auth/user-not-found") {
-                toast.error("משתמש זה לא קיים", { position: "bottom-center" });
+                toast.error(method === "username" ? "שם משתמש זה לא קיים" : "משתמש זה לא קיים", {
+                    position: "bottom-center",
+                });
             } else if (error.code === "auth/wrong-password") {
                 toast.error("הסיסמה שגויה", { position: "bottom-center" });
             } else {
@@ -86,16 +97,29 @@ const Login = () => {
                         <div className="flex-1 h-px bg-border"></div>
                     </div>
 
-                    {/* Email & Password Form */}
+                    <SegmentedToggle
+                        className="mb-6 w-full justify-center"
+                        value={method}
+                        onChange={(value) => {
+                            setMethod(value);
+                            setIdentifier("");
+                        }}
+                        options={[
+                            { value: "email", label: "אימייל" },
+                            { value: "username", label: "שם משתמש" },
+                        ]}
+                    />
+
+                    {/* Email/Username & Password Form */}
                     <form onSubmit={handleFormSubmit}>
                         <TextField
                             className="mb-4"
-                            icon={Mail}
-                            label="אימייל"
-                            type="email"
-                            placeholder="example@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            icon={method === "email" ? Mail : AtSign}
+                            label={method === "email" ? "אימייל" : "שם משתמש"}
+                            type={method === "email" ? "email" : "text"}
+                            placeholder={method === "email" ? "example@email.com" : "שם משתמש"}
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             disabled={loading}
                         />
 

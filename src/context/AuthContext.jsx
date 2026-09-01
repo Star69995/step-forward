@@ -20,10 +20,32 @@ export const AuthProvider = ({ children }) => {
 
     // Loaded once per signed-in uid and cached here, not refetched on every
     // page — role rarely changes and every other screen just reads it off
-    // this context instead of hitting Firestore again.
+    // this context instead of hitting Firestore again. Takes an explicit
+    // `user` rather than always closing over this render's `currentUser` —
+    // a caller that just created/signed in a user locally (Register.jsx)
+    // may run before onAuthStateChanged has propagated that user into this
+    // context's own state, so it passes the user it already has directly
+    // instead of racing this context's stale closure.
+    const loadProfile = async (user) => {
+        if (!user) {
+            setUserProfile(null);
+            return;
+        }
+        try {
+            const profile = await fetchUserProfile(user.uid);
+            setUserProfile(profile);
+            if (profile) ensureEmailIndex(user, profile.role, profile.displayName);
+        } catch (error) {
+            // A sign-out mid-fetch (or a revoked session) rejects this
+            // read after the caller stopped caring — nothing to show the
+            // user for a profile they're no longer viewing.
+            console.error(error);
+            setUserProfile(null);
+        }
+    };
+
     useEffect(() => {
         let cancelled = false;
-
         (async () => {
             if (!currentUser) {
                 if (!cancelled) setUserProfile(null);
@@ -35,19 +57,24 @@ export const AuthProvider = ({ children }) => {
                 setUserProfile(profile);
                 if (profile) ensureEmailIndex(currentUser, profile.role, profile.displayName);
             } catch (error) {
-                // A sign-out mid-fetch (or a revoked session) rejects this
-                // read after the effect stopped caring — nothing to show the
-                // user for a profile they're no longer viewing.
                 if (cancelled) return;
                 console.error(error);
                 setUserProfile(null);
             }
         })();
-
         return () => {
             cancelled = true;
         };
     }, [currentUser]);
+
+    // Exposed for the rare case a screen mutates users/{uid} in a way that
+    // must be reflected app-wide right away — either because the currently
+    // signed-in user's own profile just changed (Profile.jsx's account-type
+    // conversion) or because a brand-new profile was just created and needs
+    // to be visible before this context's own currentUser effect would
+    // otherwise pick it up (Register.jsx's signup flows). Everything else
+    // just relies on the effect above re-running when currentUser changes.
+    const refreshProfile = (user) => loadProfile(user || currentUser);
 
     const logout = async () => {
         try {
@@ -149,6 +176,7 @@ export const AuthProvider = ({ children }) => {
             value={{
                 currentUser,
                 userProfile,
+                refreshProfile,
                 role: userProfile?.role,
                 density,
                 setDensity,

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import { useAuth } from "../context/useAuth";
 import { useSharedWithMe } from "../services/useSharedWithMe";
+import { formatUserLabel } from "../services/userProfile";
+import { isSyntheticEmail } from "../services/anonymousAccount";
 
 // Provider-side counterpart to PlanSwitcher — lets a provider jump directly
 // to any recipient who has shared with them, from wherever they are.
@@ -54,9 +56,15 @@ const ProviderSwitcher = () => {
                                         className="w-full text-right px-4 py-3 hover:bg-surface-muted border-b border-border flex flex-col gap-0.5 transition"
                                     >
                                         <span className="font-semibold text-heading text-sm truncate">
-                                            {recipient.recipientDisplayName || recipient.recipientEmail}
+                                            {recipient.recipientLabel ||
+                                                formatUserLabel({
+                                                    displayName: recipient.recipientDisplayName,
+                                                    email: recipient.recipientEmail,
+                                                })}
                                         </span>
-                                        <span className="text-xs text-muted truncate">{recipient.recipientEmail}</span>
+                                        {!isSyntheticEmail(recipient.recipientEmail) && recipient.recipientEmail && (
+                                            <span className="text-xs text-muted truncate">{recipient.recipientEmail}</span>
+                                        )}
                                     </button>
                                 ))
                             )}

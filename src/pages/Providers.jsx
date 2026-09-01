@@ -4,6 +4,9 @@ import { useAuth } from "../context/useAuth";
 import { usePlans, formatPlanLabel } from "../services/usePlans";
 import { useShares, addOrUpdateShare, removeShare, restoreShare, deleteShareForever } from "../services/useShares";
 import { resolveEmailToUser } from "../services/resolveEmailToUser";
+import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
+import { formatUserLabel } from "../services/userProfile";
+import { isSyntheticEmail } from "../services/anonymousAccount";
 import Button from "../components/ui/Button";
 import TextField from "../components/ui/TextField";
 import Badge from "../components/ui/Badge";
@@ -24,7 +27,7 @@ import {
     Check,
 } from "lucide-react";
 
-const emptyForm = { email: "", scope: "all", permission: "view", planIds: [] };
+const emptyForm = { identifier: "", scope: "all", permission: "view", planIds: [] };
 
 // A single-select pair of "chip" buttons — used for both the scope choice
 // (all/selected) and the permission choice (view/edit) so the toggle look
@@ -44,7 +47,7 @@ const ToggleOption = ({ selected, icon: Icon, label, onClick }) => (
 );
 
 const Providers = () => {
-    const { currentUser, role } = useAuth();
+    const { currentUser, userProfile, role } = useAuth();
     const { shares, trashedShares, loading, refetch } = useShares(currentUser?.uid);
     const { plans } = usePlans(currentUser?.uid);
     const [form, setForm] = useState(emptyForm);
@@ -60,7 +63,7 @@ const Providers = () => {
 
     const openEditForm = (share) => {
         setForm({
-            email: share.providerEmail,
+            identifier: share.providerEmail || "",
             scope: share.scope,
             permission: share.permission,
             planIds: share.planIds || [],
@@ -79,8 +82,8 @@ const Providers = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.email) {
-            toast.error("יש להזין כתובת מייל");
+        if (!form.identifier) {
+            toast.error("יש להזין אימייל או שם משתמש");
             return;
         }
         if (form.scope === "selected" && form.planIds.length === 0) {
@@ -91,11 +94,19 @@ const Providers = () => {
         setSubmitting(true);
         try {
             let providerUid = editingId !== "new" ? editingId : null;
+            let resolved = null;
 
             if (!providerUid) {
-                const resolved = await resolveEmailToUser(form.email);
+                const isEmailIdentifier = form.identifier.includes("@");
+                resolved = isEmailIdentifier
+                    ? await resolveEmailToUser(form.identifier)
+                    : await resolveUsernameToUser(form.identifier);
                 if (!resolved) {
-                    toast.error("לא נמצא משתמש רשום עם כתובת מייל זו, או שהמייל שלו טרם אומת");
+                    toast.error(
+                        isEmailIdentifier
+                            ? "לא נמצא משתמש רשום עם כתובת מייל זו, או שהמייל שלו טרם אומת"
+                            : "לא נמצא משתמש רשום עם שם משתמש זה"
+                    );
                     return;
                 }
                 if (resolved.role !== "provider") {
@@ -110,12 +121,27 @@ const Providers = () => {
             }
 
             await addOrUpdateShare(currentUser.uid, providerUid, {
-                providerEmail: form.email.trim().toLowerCase(),
+                // Left undefined (and so omitted — see firebase.js's
+                // ignoreUndefinedProperties) when editing an existing share,
+                // so these denormalized fields aren't blanked out just
+                // because this submission didn't re-resolve an identifier.
+                providerEmail: resolved
+                    ? resolved.email && !isSyntheticEmail(resolved.email)
+                        ? resolved.email.toLowerCase()
+                        : ""
+                    : undefined,
+                providerLabel: resolved ? formatUserLabel(resolved) : undefined,
                 scope: form.scope,
                 planIds: form.planIds,
                 permission: form.permission,
                 recipientEmail: currentUser.email,
                 recipientDisplayName: currentUser.displayName,
+                recipientLabel: formatUserLabel({
+                    displayName: userProfile?.displayName,
+                    username: userProfile?.username,
+                    email: currentUser.email,
+                }),
+                recipientIsAnonymous: !!userProfile?.isAnonymous,
             });
             toast.success("הפרטים נשמרו בהצלחה");
             closeForm();
@@ -162,11 +188,11 @@ const Providers = () => {
                 <TextField
                     className="mb-4"
                     icon={Mail}
-                    label="מייל נותן השירות"
-                    type="email"
-                    placeholder="example@email.com"
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                    label="אימייל או שם משתמש של נותן השירות"
+                    type="text"
+                    placeholder="example@email.com או שם משתמש"
+                    value={form.identifier}
+                    onChange={(e) => setForm((f) => ({ ...f, identifier: e.target.value }))}
                     disabled={submitting}
                 />
             )}
@@ -287,7 +313,9 @@ const Providers = () => {
                                         className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-border flex-wrap"
                                     >
                                         <div>
-                                            <p className="font-semibold text-heading">{share.providerEmail}</p>
+                                            <p className="font-semibold text-heading">
+                                                {share.providerLabel || formatUserLabel({ email: share.providerEmail })}
+                                            </p>
                                             <div className="flex gap-2 mt-1 flex-wrap">
                                                 <Badge variant="gray" icon={share.scope === "all" ? Globe : ListChecks}>
                                                     {share.scope === "all"
@@ -328,7 +356,7 @@ const Providers = () => {
 
                     <TrashSection
                         items={trashedShares}
-                        renderLabel={(share) => share.providerEmail}
+                        renderLabel={(share) => share.providerLabel || formatUserLabel({ email: share.providerEmail })}
                         onRestore={handleRestoreShare}
                         onDeleteForever={handleDeleteShareForever}
                         className="mt-6"
@@ -339,7 +367,9 @@ const Providers = () => {
             <ConfirmDialog
                 open={!!pendingRemove}
                 title="ביטול שיתוף"
-                message={`האם לבטל את השיתוף עם "${pendingRemove?.providerEmail}"? הגישה שלו לתוכניות תבוטל באופן מיידי, והשיתוף יועבר לפח המחזור למשך 30 יום.`}
+                message={`האם לבטל את השיתוף עם "${
+                    pendingRemove ? pendingRemove.providerLabel || formatUserLabel({ email: pendingRemove.providerEmail }) : ""
+                }"? הגישה שלו לתוכניות תבוטל באופן מיידי, והשיתוף יועבר לפח המחזור למשך 30 יום.`}
                 confirmLabel="ביטול שיתוף"
                 cancelLabel="חזרה"
                 loading={removing}

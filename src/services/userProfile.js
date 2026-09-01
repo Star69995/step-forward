@@ -1,9 +1,12 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
+import { isSyntheticEmail } from "./anonymousAccount";
 
 // Single place that creates/reads the users/{uid} profile doc (role +
-// display info) — the one thing Firebase Auth itself doesn't store.
-export const createUserProfile = async (user, role) => {
+// display info) — the one thing Firebase Auth itself doesn't store. `extra`
+// carries the fields specific to the signup path (username always,
+// isAnonymous for the username-only path) — see Register.jsx.
+export const createUserProfile = async (user, role, extra = {}) => {
     const ref = doc(db, `users/${user.uid}`);
     await setDoc(
         ref,
@@ -12,9 +15,21 @@ export const createUserProfile = async (user, role) => {
             email: user.email,
             displayName: user.displayName || "",
             createdAt: serverTimestamp(),
+            ...extra,
         },
         { merge: true }
     );
+};
+
+// Single source for how a user is displayed to others (share labels, comment
+// authorship, version-history attribution) — prefers a real display name,
+// falls back to the public username, and never falls back to a synthetic
+// (anonymous-account) email, only a real one.
+export const formatUserLabel = ({ displayName, username, email } = {}) => {
+    if (displayName) return displayName;
+    if (username) return username;
+    if (email && !isSyntheticEmail(email)) return email;
+    return "משתמש";
 };
 
 export const fetchUserProfile = async (uid) => {

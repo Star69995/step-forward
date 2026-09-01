@@ -44,18 +44,29 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------
-    // users/{uid} — profile + role, created once at signup.
+    // users/{uid} — profile + role, created once at signup. Every account
+    // (email-based or anonymous) also picks a unique username at signup —
+    // create requires it to be a real claim already recorded in
+    // usernameIndex (not just an arbitrary string), owned by this uid.
     // ---------------------------------------------------------------
     match /users/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
 
       allow create: if isSignedIn() && request.auth.uid == uid
         && request.resource.data.role in ['provider', 'recipient']
-        && request.resource.data.email == request.auth.token.email;
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.username is string
+        && exists(/databases/$(database)/documents/usernameIndex/$(request.resource.data.username))
+        && get(/databases/$(database)/documents/usernameIndex/$(request.resource.data.username)).data.uid == request.auth.uid;
 
-      // Role is immutable after signup — no self-service role switch.
+      // Role is immutable after signup — no self-service role switch. Once
+      // set, username is immutable too (no rename feature) — but the
+      // condition allows a one-time "upgrade" from a profile that predates
+      // this field entirely, so existing accounts can complete it once via
+      // the app's profile-completion screen.
       allow update: if isSignedIn() && request.auth.uid == uid
-        && request.resource.data.role == resource.data.role;
+        && request.resource.data.role == resource.data.role
+        && (!('username' in resource.data) || request.resource.data.username == resource.data.username);
 
       allow delete: if false;
     }
@@ -79,6 +90,30 @@ service cloud.firestore {
         && request.resource.data.role in ['provider', 'recipient'];
 
       allow update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+    }
+
+    // ---------------------------------------------------------------
+    // usernameIndex/{username} — exact-match lookup only, never list, same
+    // as emailIndex. Unlike emailIndex, `get` is public/unauthenticated on
+    // purpose: a username is a public handle meant to be shared and typed in
+    // by other people (like a Discord/GitHub handle), not PII like an email
+    // — this is also what lets the signup form show a live "available/
+    // taken" check before the user is even signed in. The stored doc is
+    // deliberately minimal ({uid, role, username}, no displayName) so a
+    // public get can never leak a real name. No rename feature — a claimed
+    // username is permanent, so `update` has no legitimate use.
+    // ---------------------------------------------------------------
+    match /usernameIndex/{usernameId} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.uid
+        && request.resource.data.username == usernameId
+        && request.resource.data.role in ['provider', 'recipient'];
+
+      allow update: if false;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.uid;
     }
 
     // ---------------------------------------------------------------

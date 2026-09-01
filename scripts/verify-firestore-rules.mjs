@@ -97,6 +97,8 @@ async function main() {
     const stamp = Date.now();
     const recipientEmail = `recipient-${stamp}@example.com`;
     const providerEmail = `provider-${stamp}@example.com`;
+    const rUsername = `recipient${stamp}`;
+    const pUsername = `provider${stamp}`;
     const password = "test123456";
 
     const rCred = await createUserWithEmailAndPassword(rAuth, recipientEmail, password);
@@ -107,12 +109,54 @@ async function main() {
     await verifyEmail(rAuth);
     await verifyEmail(pAuth);
 
-    // 1. users/{uid} self-creation
+    // 1. usernameIndex claim, then users/{uid} self-creation (create now
+    // requires a matching usernameIndex claim owned by the same uid).
+    await expectOk("recipient claims own usernameIndex entry", () =>
+        setDoc(doc(rDb, `usernameIndex/${rUsername}`), { uid: rUid, role: "recipient", username: rUsername })
+    );
+    await expectOk("provider claims own usernameIndex entry", () =>
+        setDoc(doc(pDb, `usernameIndex/${pUsername}`), { uid: pUid, role: "provider", username: pUsername })
+    );
+    await expectDenied("second user CANNOT squat an already-claimed username", () =>
+        setDoc(doc(pDb, `usernameIndex/${rUsername}`), { uid: pUid, role: "provider", username: rUsername })
+    );
+    await expectDenied("usernameIndex collection cannot be listed (no directory)", () =>
+        getDocs(collection(rDb, "usernameIndex"))
+    );
+    await expectDenied("usernameIndex update is always denied (no rename feature)", () =>
+        updateDoc(doc(rDb, `usernameIndex/${rUsername}`), { role: "provider" })
+    );
+    await expectOk("resolveUsernameToUser: get by exact username", async () => {
+        const snap = await getDoc(doc(rDb, `usernameIndex/${pUsername}`));
+        if (!snap.exists() || snap.data().uid !== pUid) throw new Error("lookup mismatch");
+    });
+    await expectOk("usernameIndex get is public/unauthenticated", async () => {
+        const anonApp = initializeApp(config, "anon-check");
+        const anonDb = getFirestore(anonApp);
+        connectFirestoreEmulator(anonDb, "127.0.0.1", 8080);
+        try {
+            const snap = await getDoc(doc(anonDb, `usernameIndex/${rUsername}`));
+            if (!snap.exists()) throw new Error("expected public get to succeed and find the doc");
+        } finally {
+            await deleteApp(anonApp);
+        }
+    });
+
+    await expectDenied("users/{uid} create is denied if username has no matching usernameIndex claim", () =>
+        setDoc(doc(rDb, `users/${rUid}`), {
+            role: "recipient",
+            email: recipientEmail,
+            displayName: "",
+            username: "not-actually-claimed",
+            createdAt: serverTimestamp(),
+        })
+    );
     await expectOk("recipient creates own users/{uid} profile", () =>
         setDoc(doc(rDb, `users/${rUid}`), {
             role: "recipient",
             email: recipientEmail,
             displayName: "",
+            username: rUsername,
             createdAt: serverTimestamp(),
         })
     );
@@ -121,8 +165,23 @@ async function main() {
             role: "provider",
             email: providerEmail,
             displayName: "",
+            username: pUsername,
             createdAt: serverTimestamp(),
         })
+    );
+    // The update rule's `!('username' in resource.data)` clause exists to
+    // let a profile created *before* this feature shipped (so it has no
+    // `username` field at all) add one once, via the app's profile-
+    // completion screen — not reproducible here since, under the rules
+    // being tested right now, no profile can ever be created without a
+    // username in the first place. Covered by code review instead; the two
+    // checks below cover the reachable part of the same clause (idempotent
+    // re-save allowed, actual change rejected).
+    await expectOk("re-saving the same username on an existing profile is allowed", () =>
+        updateDoc(doc(rDb, `users/${rUid}`), { username: rUsername })
+    );
+    await expectDenied("recipient CANNOT change username after it's set (immutable)", () =>
+        updateDoc(doc(rDb, `users/${rUid}`), { username: `${rUsername}-renamed` })
     );
 
     // 2. emailIndex — only for your own verified email

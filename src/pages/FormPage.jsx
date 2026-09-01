@@ -18,8 +18,10 @@ import CollapsibleSection from "../components/ui/CollapsibleSection";
 import InfoHint from "../components/ui/InfoHint";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
+import PromptDialog from "../components/ui/PromptDialog";
 import CommentThread from "../components/CommentThread";
 import VersionHistory from "../components/VersionHistory";
+import { formatUserLabel } from "../services/userProfile";
 import {
     Footprints,
     ClipboardList,
@@ -46,7 +48,7 @@ import {
 } from "lucide-react";
 
 const FormPage = () => {
-    const { currentUser, role } = useAuth();
+    const { currentUser, userProfile, role } = useAuth();
     const methods = useForm();
     const { setValue, getValues } = methods;
     const location = useLocation();
@@ -63,6 +65,16 @@ const FormPage = () => {
     const ownerUid = queryParams.get("ownerUid") || currentUser.uid;
     const isOwner = ownerUid === currentUser.uid;
     const ownerName = location.state?.ownerName;
+    // An anonymous account's plan never stores a real name (see the "name"
+    // field below) — for the owner themself this comes straight from their
+    // own profile; for a provider viewing a shared plan it's carried via
+    // navigation state (see RecipientPlans.jsx), since providers don't have
+    // a read path to the recipient's own users/{uid} profile document.
+    const ownerIsAnonymous = isOwner ? !!userProfile?.isAnonymous : !!location.state?.ownerIsAnonymous;
+    const nameFieldRef = useRef(null);
+    const [pdfNamePromptOpen, setPdfNamePromptOpen] = useState(false);
+    const [pdfNameValue, setPdfNameValue] = useState("");
+    const pdfNameResolveRef = useRef(null);
 
     const [planId] = useState(() => (isNewPlan ? uuidv4() : planParamId));
     const [isLoading, setIsLoading] = useState(!isNewPlan && !passedPlanData);
@@ -124,7 +136,11 @@ const FormPage = () => {
     // Whoever is actually saving right now — the recipient themself or a
     // provider with an edit grant — attributed on every version entry in
     // VersionHistory.jsx, same shape as CommentThread's authorUid/Name/Role.
-    const editor = { uid: currentUser.uid, name: currentUser.displayName || currentUser.email, role };
+    const editor = {
+        uid: currentUser.uid,
+        name: formatUserLabel({ displayName: currentUser.displayName, username: userProfile?.username, email: currentUser.email }),
+        role,
+    };
 
     // All of the plan's comments (whole-plan + every goal), active and
     // trashed, are fetched once here and filtered by targetGoal for each
@@ -156,6 +172,26 @@ const FormPage = () => {
     // watch-based autosave above must not treat the reverted values as a new
     // pending change and write them again — so its comparison snapshot is
     // refreshed here, exactly like it is right after the initial load.
+    // For an anonymous-owned plan, offers a one-time, never-persisted name
+    // to bake into this specific PDF export only — resolved via the plain
+    // (unregistered, so never saved/autosaved) "name" input rendered above.
+    // Both buttons proceed with the export; skipping just leaves it blank.
+    const handleBeforeAnonymousExport = () =>
+        new Promise((resolve) => {
+            setPdfNameValue("");
+            pdfNameResolveRef.current = resolve;
+            setPdfNamePromptOpen(true);
+        });
+
+    const resolvePdfNamePrompt = (useName) => {
+        setPdfNamePromptOpen(false);
+        if (useName && nameFieldRef.current) {
+            nameFieldRef.current.value = pdfNameValue.trim();
+        }
+        pdfNameResolveRef.current?.(true);
+        pdfNameResolveRef.current = null;
+    };
+
     const handleReverted = (newValues) => {
         initialValuesRef.current = JSON.stringify(newValues);
         setSaveStatus("saved");
@@ -196,7 +232,14 @@ const FormPage = () => {
     useEffect(() => {
         const applyData = (data) => {
             Object.entries(data).forEach(([key, value]) => {
-                if (value !== undefined && key !== "id") setValue(key, value);
+                // A "name" value saved before this account went anonymous
+                // (or before this feature existed) must not be silently
+                // resurrected into an unregistered field's would-be value —
+                // see the "name" field above, which anonymous owners never
+                // register with react-hook-form in the first place.
+                if (value !== undefined && key !== "id" && !(ownerIsAnonymous && key === "name")) {
+                    setValue(key, value);
+                }
             });
         };
 
@@ -213,9 +256,11 @@ const FormPage = () => {
             // Give a new plan a head start: today's date, left fully editable
             // in case it doesn't fit. The account name is only a sensible
             // guess for the recipient themselves — a provider's own name is
-            // never the plan owner's name, so it's left blank for them.
-            if (role === "recipient") {
-                setValue("name", currentUser.displayName || currentUser.email || "");
+            // never the plan owner's name, so it's left blank for them. An
+            // anonymous account never gets this prefill at all — see the
+            // "name" field below, which isn't even registered for them.
+            if (role === "recipient" && !ownerIsAnonymous) {
+                setValue("name", formatUserLabel({ displayName: currentUser.displayName, username: userProfile?.username, email: currentUser.email }));
             }
             setValue("endDate", new Date().toISOString().split("T")[0]);
             initialValuesRef.current = JSON.stringify(getValues());
@@ -272,7 +317,14 @@ const FormPage = () => {
             saveTimeoutRef.current = setTimeout(async () => {
                 setSaveStatus("saving");
                 try {
-                    await savePlan(ownerUid, getValues(), planId, editor);
+                    // getValues() never includes "name" for an anonymous
+                    // owner (the field is never registered — see above), but
+                    // a merge write alone would silently leave a real name
+                    // saved before this account went anonymous sitting in
+                    // Firestore forever. Overwrite it explicitly instead of
+                    // just omitting it.
+                    const values = ownerIsAnonymous ? { ...getValues(), name: "" } : getValues();
+                    await savePlan(ownerUid, values, planId, editor);
                     setSaveStatus("saved");
                     savedResetTimeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
                 } catch (error) {
@@ -354,7 +406,24 @@ const FormPage = () => {
                                         <User size={16} aria-hidden="true" />
                                         שם מלא
                                     </label>
-                                    <FormSection name="name" rows={1} showLabel={false} placeholder="השם המלא" />
+                                    {ownerIsAnonymous ? (
+                                        <>
+                                            <TextField
+                                                as="input"
+                                                type="text"
+                                                dense
+                                                ref={nameFieldRef}
+                                                defaultValue=""
+                                                disabled
+                                                placeholder="לא נשמר בחשבון אנונימי"
+                                            />
+                                            <small className="block text-muted text-xs mt-1.5">
+                                                בחשבון אנונימי השם לא נשמר — ניתן להוסיף אותו זמנית בעת ייצוא ל-PDF בלבד
+                                            </small>
+                                        </>
+                                    ) : (
+                                        <FormSection name="name" rows={1} showLabel={false} placeholder="השם המלא" />
+                                    )}
                                 </div>
                                 <div>
                                     <TextField
@@ -753,7 +822,12 @@ const FormPage = () => {
                                 צפייה בלבד — אין הרשאת עריכה
                             </Badge>
                         )}
-                        <PDFButton targetId="formArea" autoTrigger={autoExport} size="sm" />
+                        <PDFButton
+                            targetId="formArea"
+                            autoTrigger={autoExport}
+                            size="sm"
+                            onBeforeExport={ownerIsAnonymous ? handleBeforeAnonymousExport : undefined}
+                        />
                         {saveStatus === "pending" && (
                             <small className="text-muted text-xs sm:text-sm">יש שינויים שטרם נשמרו</small>
                         )}
@@ -778,6 +852,24 @@ const FormPage = () => {
                     </div>
                 </div>
             </div>
+
+            <PromptDialog
+                open={pdfNamePromptOpen}
+                title="הוספת שם למסמך המיוצא"
+                message="השם לא יישמר בחשבון או בתוכנית — הוא ישמש רק למסמך ה-PDF הזה."
+                fields={[
+                    {
+                        label: "שם (רשות)",
+                        value: pdfNameValue,
+                        onChange: (e) => setPdfNameValue(e.target.value),
+                        placeholder: "השם המלא",
+                    },
+                ]}
+                confirmLabel="המשך לייצוא"
+                cancelLabel="דילוג"
+                onConfirm={() => resolvePdfNamePrompt(true)}
+                onCancel={() => resolvePdfNamePrompt(false)}
+            />
         </FormProvider>
     );
 };

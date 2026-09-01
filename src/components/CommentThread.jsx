@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/useAuth";
 import { addComment, deleteComment, restoreComment, deleteCommentForever } from "../services/useComments";
+import { formatUserLabel } from "../services/userProfile";
 import { ROLE_META } from "../services/roles";
 import Button from "./ui/Button";
 import TextField from "./ui/TextField";
@@ -27,7 +28,7 @@ const CommentThread = ({
     isOwner,
     title = "הערות ועדכוני התקדמות",
 }) => {
-    const { currentUser, role } = useAuth();
+    const { currentUser, userProfile, role } = useAuth();
     const [text, setText] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [pendingDelete, setPendingDelete] = useState(null);
@@ -40,7 +41,11 @@ const CommentThread = ({
 
         setSubmitting(true);
         try {
-            const authorName = currentUser.displayName || currentUser.email;
+            const authorName = formatUserLabel({
+                displayName: currentUser.displayName,
+                username: userProfile?.username,
+                email: currentUser.email,
+            });
             const id = await addComment(ownerUid, planId, {
                 text: trimmed,
                 targetGoal,

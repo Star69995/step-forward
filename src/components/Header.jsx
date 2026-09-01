@@ -6,9 +6,10 @@ import PlanSwitcher from "./PlanSwitcher";
 import ProviderSwitcher from "./ProviderSwitcher";
 import RoleBadge from "./RoleBadge";
 import ConfirmDialog from "./ui/ConfirmDialog";
+import { formatUserLabel } from "../services/userProfile";
 
 const Header = () => {
-    const { currentUser, role, logout } = useAuth();
+    const { currentUser, userProfile, role, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [confirmingLogout, setConfirmingLogout] = useState(false);
@@ -60,7 +61,11 @@ const Header = () => {
                     <div className="hidden lg:flex items-center gap-2 border-r border-white/30 ps-4 ms-4">
                         <User size={14} className="text-white/90" aria-hidden="true" />
                         <small className="text-white/90 whitespace-nowrap">
-                            {currentUser.displayName || currentUser.email}
+                            {formatUserLabel({
+                                displayName: currentUser.displayName,
+                                username: userProfile?.username,
+                                email: currentUser.email,
+                            })}
                         </small>
                         <RoleBadge role={role} variant="onDark" />
                     </div>

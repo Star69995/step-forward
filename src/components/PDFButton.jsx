@@ -4,11 +4,20 @@ import { FileDown } from "lucide-react";
 import { toast } from "react-toastify";
 import Button from "./ui/Button";
 
-const PDFButton = ({ targetId, autoTrigger = false, size = "md" }) => {
+const PDFButton = ({ targetId, autoTrigger = false, size = "md", onBeforeExport }) => {
     const [isExporting, setIsExporting] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
 
-    const handleExport = () => {
+    // onBeforeExport lets a caller run an async step (e.g. a one-time,
+    // never-persisted "add a name for this document" prompt for anonymous
+    // accounts, see FormPage.jsx) before the DOM is captured — returning
+    // `false` cancels the export outright.
+    const handleExport = async () => {
+        if (onBeforeExport) {
+            const proceed = await onBeforeExport();
+            if (proceed === false) return;
+        }
+
         setIsExporting(true);
         setExportProgress(0);
 

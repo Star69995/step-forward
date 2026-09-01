@@ -55,7 +55,17 @@ export const useShares = (recipientUid) => {
 export const addOrUpdateShare = async (
     recipientUid,
     providerUid,
-    { providerEmail, scope, planIds, permission, recipientEmail, recipientDisplayName }
+    {
+        providerEmail,
+        providerLabel,
+        scope,
+        planIds,
+        permission,
+        recipientEmail,
+        recipientDisplayName,
+        recipientLabel,
+        recipientIsAnonymous,
+    }
 ) => {
     const ref = doc(db, `users/${recipientUid}/shares/${providerUid}`);
     const existing = await getDoc(ref);
@@ -65,13 +75,22 @@ export const addOrUpdateShare = async (
         {
             providerUid,
             providerEmail,
+            providerLabel,
             scope,
             planIds: scope === "selected" ? planIds : [],
             permission,
             // Denormalized so the provider side (ProviderSwitcher/RecipientPlans)
             // can show a readable label without an extra read per recipient.
+            // providerLabel/recipientLabel are the single precomputed display
+            // string (see userProfile.js's formatUserLabel) — the other
+            // fields are kept only as a fallback source for shares written
+            // before this field existed. recipientIsAnonymous lets a
+            // provider's view of a shared plan (FormPage.jsx) know the
+            // owner never stores a real name, without an extra profile read.
             recipientEmail,
             recipientDisplayName: recipientDisplayName || "",
+            recipientLabel,
+            recipientIsAnonymous: !!recipientIsAnonymous,
             updatedAt: serverTimestamp(),
             // Saving a share always means "this grant is active" — clears any
             // prior trashing if the same provider is re-added before the

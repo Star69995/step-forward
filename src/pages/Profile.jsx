@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { usePlans, formatPlanLabel } from "../services/usePlans";
 import { softDeleteDoc, restoreDoc } from "../services/trash";
+import { formatUserLabel } from "../services/userProfile";
 import {
     User,
     LogOut,
@@ -25,16 +26,33 @@ import {
     Sun,
     Moon,
     Monitor,
+    ShieldQuestion,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import PromptDialog from "../components/ui/PromptDialog";
 import TrashSection from "../components/ui/TrashSection";
 import RoleBadge from "../components/RoleBadge";
 import Badge from "../components/ui/Badge";
 import SegmentedToggle from "../components/ui/SegmentedToggle";
+import { convertToAnonymous, convertToRegular } from "../services/accountConversion";
 
 const Profile = () => {
-    const { currentUser, role, logout, density, setDensity, themeMode, setThemeMode } = useAuth();
+    const { currentUser, userProfile, refreshProfile, role, logout, density, setDensity, themeMode, setThemeMode } =
+        useAuth();
+    const isAnonymous = !!userProfile?.isAnonymous;
+    // Account-type conversion (see accountConversion.js) needs to
+    // reauthenticate with a password — only possible for a password-based
+    // account. A Google-only account already has a real, recoverable
+    // identity via Google, so converting it either direction is out of
+    // scope for now.
+    const hasPasswordProvider = !!currentUser?.providerData?.some((p) => p.providerId === "password");
+    const [convertingToAnonymous, setConvertingToAnonymous] = useState(false);
+    const [toAnonymousPassword, setToAnonymousPassword] = useState("");
+    const [convertingToRegular, setConvertingToRegular] = useState(false);
+    const [toRegularPassword, setToRegularPassword] = useState("");
+    const [toRegularEmail, setToRegularEmail] = useState("");
+    const [converting, setConverting] = useState(false);
     const { plans, trashedPlans, loading, setPlans, setTrashedPlans } = usePlans(currentUser?.uid);
     const [deleting, setDeleting] = useState(null);
     const [pendingDelete, setPendingDelete] = useState(null);
@@ -73,6 +91,55 @@ const Profile = () => {
             }
         } finally {
             setSendingVerification(false);
+        }
+    };
+
+    const handleConvertToAnonymous = async () => {
+        if (!toAnonymousPassword) {
+            toast.error("יש להזין סיסמה");
+            return;
+        }
+        setConverting(true);
+        try {
+            await convertToAnonymous(currentUser, toAnonymousPassword, userProfile.username);
+            await refreshProfile();
+            toast.success("החשבון הומר לחשבון אנונימי");
+            setConvertingToAnonymous(false);
+            setToAnonymousPassword("");
+        } catch (error) {
+            if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+                toast.error("הסיסמה שגויה");
+            } else {
+                toast.error("שגיאה בהמרת החשבון: " + error.message);
+            }
+        } finally {
+            setConverting(false);
+        }
+    };
+
+    const handleConvertToRegular = async () => {
+        if (!toRegularPassword || !toRegularEmail) {
+            toast.error("יש למלא את כל השדות");
+            return;
+        }
+        setConverting(true);
+        try {
+            await convertToRegular(currentUser, toRegularPassword, toRegularEmail);
+            await refreshProfile();
+            toast.success("החשבון הומר לחשבון רגיל — נשלח מייל אימות לכתובת החדשה");
+            setConvertingToRegular(false);
+            setToRegularPassword("");
+            setToRegularEmail("");
+        } catch (error) {
+            if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+                toast.error("הסיסמה שגויה");
+            } else if (error.code === "auth/email-already-in-use") {
+                toast.error("כתובת המייל כבר רשומה במערכת");
+            } else {
+                toast.error("שגיאה בהמרת החשבון: " + error.message);
+            }
+        } finally {
+            setConverting(false);
         }
     };
 
@@ -139,33 +206,41 @@ const Profile = () => {
                         <div className="min-w-0">
                             <h2 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold text-heading mb-1 flex-wrap">
                                 <User size={26} className="shrink-0" aria-hidden="true" />
-                                <span className="wrap-break-word">שלום, {currentUser?.displayName || currentUser?.email}</span>
+                                <span className="wrap-break-word">
+                                    שלום, {formatUserLabel({ displayName: currentUser?.displayName, username: userProfile?.username, email: currentUser?.email })}
+                                </span>
                                 <RoleBadge role={role} />
                             </h2>
-                            <small className="text-muted">{currentUser?.email}</small>
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                {emailVerified ? (
-                                    <Badge variant="success" icon={MailCheck}>
-                                        מייל מאושר
-                                    </Badge>
-                                ) : (
-                                    <>
-                                        <Badge variant="warning" icon={MailWarning}>
-                                            מייל לא מאושר
+                            {isAnonymous ? (
+                                <small className="text-muted">חשבון אנונימי — אין מייל</small>
+                            ) : (
+                                <small className="text-muted">{currentUser?.email}</small>
+                            )}
+                            {!isAnonymous && (
+                                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                    {emailVerified ? (
+                                        <Badge variant="success" icon={MailCheck}>
+                                            מייל מאושר
                                         </Badge>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            rounded="rounded-lg"
-                                            loading={sendingVerification}
-                                            loadingText="שולח..."
-                                            onClick={handleResendVerification}
-                                        >
-                                            שליחת מייל אימות מחדש
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
+                                    ) : (
+                                        <>
+                                            <Badge variant="warning" icon={MailWarning}>
+                                                מייל לא מאושר
+                                            </Badge>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                rounded="rounded-lg"
+                                                loading={sendingVerification}
+                                                loadingText="שולח..."
+                                                onClick={handleResendVerification}
+                                            >
+                                                שליחת מייל אימות מחדש
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                             <div className="mt-4 flex items-center gap-3 flex-wrap">
                                 <span className="text-sm font-semibold text-body">צפיפות תצוגה</span>
                                 <SegmentedToggle
@@ -189,6 +264,34 @@ const Profile = () => {
                                     ]}
                                 />
                             </div>
+                            {(isAnonymous || hasPasswordProvider) && (
+                                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                                    <span className="text-sm font-semibold text-body">סוג חשבון</span>
+                                    {isAnonymous ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            rounded="rounded-lg"
+                                            icon={ShieldQuestion}
+                                            onClick={() => setConvertingToRegular(true)}
+                                        >
+                                            המרה לחשבון רגיל (עם מייל, ניתן לשחזור)
+                                        </Button>
+                                    ) : (
+                                        hasPasswordProvider && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                rounded="rounded-lg"
+                                                icon={ShieldQuestion}
+                                                onClick={() => setConvertingToAnonymous(true)}
+                                            >
+                                                המרה לחשבון אנונימי (ללא מייל, לא ניתן לשחזור)
+                                            </Button>
+                                        )
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div className="flex gap-2 flex-wrap">
                             {role === "recipient" && (
@@ -327,6 +430,60 @@ const Profile = () => {
                     logout();
                 }}
                 onCancel={() => setConfirmingLogout(false)}
+            />
+
+            <PromptDialog
+                open={convertingToAnonymous}
+                title="המרה לחשבון אנונימי"
+                message="לא ניתן יהיה לשחזר את החשבון בשום צורה לאחר ההמרה — לא יהיה מייל מקושר, ואי אפשר לאפס סיסמה שנשכחה. יש להזין את הסיסמה הנוכחית לאישור."
+                fields={[
+                    {
+                        label: "סיסמה נוכחית",
+                        type: "password",
+                        value: toAnonymousPassword,
+                        onChange: (e) => setToAnonymousPassword(e.target.value),
+                        placeholder: "הסיסמה הנוכחית",
+                    },
+                ]}
+                confirmLabel="המרה לאנונימי"
+                cancelLabel="ביטול"
+                loading={converting}
+                onConfirm={handleConvertToAnonymous}
+                onCancel={() => {
+                    setConvertingToAnonymous(false);
+                    setToAnonymousPassword("");
+                }}
+            />
+
+            <PromptDialog
+                open={convertingToRegular}
+                title="המרה לחשבון רגיל"
+                message="נדרש מייל אמיתי וסיסמה נוכחית כדי להפוך את החשבון לחשבון רגיל, הניתן לשחזור."
+                fields={[
+                    {
+                        label: "סיסמה נוכחית",
+                        type: "password",
+                        value: toRegularPassword,
+                        onChange: (e) => setToRegularPassword(e.target.value),
+                        placeholder: "הסיסמה הנוכחית",
+                    },
+                    {
+                        label: "כתובת מייל חדשה",
+                        type: "email",
+                        value: toRegularEmail,
+                        onChange: (e) => setToRegularEmail(e.target.value),
+                        placeholder: "example@email.com",
+                    },
+                ]}
+                confirmLabel="המרה לחשבון רגיל"
+                cancelLabel="ביטול"
+                loading={converting}
+                onConfirm={handleConvertToRegular}
+                onCancel={() => {
+                    setConvertingToRegular(false);
+                    setToRegularPassword("");
+                    setToRegularEmail("");
+                }}
             />
         </div>
     );
