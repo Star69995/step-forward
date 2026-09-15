@@ -121,4 +121,4 @@ npm run dev:emulator
 
 ## רישיון
 
-הקוד מופץ תחת [PolyForm Noncommercial License 1.0.0](LICENSE) — שימוש חופשי לכל מטרה שאינה מסחרית; אין רישיון לשימוש מסחרי.
+הקוד מופץ תחת [GNU General Public License v3.0](LICENSE) — קוד פתוח, כולל שימוש מסחרי, בכפוף לחובת שמירת רישיון ה-GPL בכל נגזרת.
