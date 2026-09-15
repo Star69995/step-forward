@@ -14,24 +14,12 @@ import TextField from "../components/ui/TextField";
 import Spinner from "../components/ui/Spinner";
 import SegmentedToggle from "../components/ui/SegmentedToggle";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import RoleSelector from "../components/RoleSelector";
 import { useAuth } from "../context/useAuth";
 import { createUserProfile, fetchUserProfile, updateUserProfile } from "../services/userProfile";
 import { claimUsername } from "../services/usernameIndex";
 import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
 import { USERNAME_REGEX, normalizeUsername, syntheticEmailForUsername } from "../services/anonymousAccount";
-import { ROLE_META } from "../services/roles";
-
-const ROLE_DESCRIPTIONS = {
-    recipient: "ממלאים תוכנית אישית לקידום מטרות ויכולים לשתף אותה עם נותני שירות",
-    provider: "מלווים תוכניות של מקבלי שירות שבחרו לשתף איתם",
-};
-
-const ROLES = Object.entries(ROLE_META).map(([value, meta]) => ({
-    value,
-    label: meta.label,
-    icon: meta.icon,
-    description: ROLE_DESCRIPTIONS[value],
-}));
 
 const validateUsernameFormat = (value) => {
     const normalized = normalizeUsername(value);
@@ -361,36 +349,7 @@ const Register = () => {
         }
     };
 
-    const roleSelector = (
-        <div className="mb-6">
-            <span className="block text-sm font-semibold text-heading mb-2">סוג המשתמש</span>
-            <div className="grid grid-cols-1 gap-3">
-                {ROLES.map(({ value, label, description, icon: Icon }) => {
-                    const selected = role === value;
-                    return (
-                        <button
-                            key={value}
-                            type="button"
-                            onClick={() => setRole(value)}
-                            aria-pressed={selected}
-                            className={`flex items-start gap-3 text-right p-4 rounded-xl border-2 transition ${
-                                selected ? "border-primary bg-primary/5" : "border-border hover:border-border"
-                            }`}
-                        >
-                            <Icon size={22} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-                            <span className="flex-1">
-                                <span className="flex items-center gap-2 font-bold text-heading">
-                                    {label}
-                                    {selected && <Check size={16} className="text-primary" aria-hidden="true" />}
-                                </span>
-                                <span className="block text-sm text-body mt-0.5">{description}</span>
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
+    const roleSelector = <RoleSelector value={role} onChange={setRole} className="mb-6" />;
 
     const needsCompletion = needsRole || needsUsername;
 
