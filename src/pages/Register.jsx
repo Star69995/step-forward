@@ -21,11 +21,13 @@ import { claimUsername } from "../services/usernameIndex";
 import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
 import { USERNAME_REGEX, normalizeUsername, syntheticEmailForUsername } from "../services/anonymousAccount";
 
+const USERNAME_FORMAT_RULE = "אותיות אנגליות קטנות, ספרות וקו תחתון בלבד, 3-20 תווים";
+
 const validateUsernameFormat = (value) => {
     const normalized = normalizeUsername(value);
     if (!normalized) return "יש לבחור שם משתמש";
     if (!USERNAME_REGEX.test(normalized)) {
-        return "שם משתמש יכול להכיל רק אותיות אנגליות קטנות, ספרות וקו תחתון, באורך 3-20 תווים";
+        return `שם משתמש יכול להכיל רק ${USERNAME_FORMAT_RULE}`;
     }
     return null;
 };
@@ -151,8 +153,8 @@ const Register = () => {
                 השם כבר תפוס
             </span>
         ),
-        invalid: <span className="text-muted">אותיות אנגליות קטנות, ספרות וקו תחתון בלבד, 3-20 תווים</span>,
-        idle: <span className="text-muted">אותיות אנגליות קטנות, ספרות וקו תחתון בלבד, 3-20 תווים</span>,
+        invalid: <span className="text-muted">{USERNAME_FORMAT_RULE}</span>,
+        idle: <span className="text-muted">{USERNAME_FORMAT_RULE}</span>,
     }[usernameStatus];
 
     const usernameField = (
@@ -461,7 +463,7 @@ const Register = () => {
                                     {usernameField}
 
                                     <TextField
-                                        className="mb-6"
+                                        className="mb-2"
                                         icon={Lock}
                                         label="סיסמה"
                                         type="password"
@@ -471,6 +473,9 @@ const Register = () => {
                                         disabled={loading}
                                         hint="הסיסמה חייבת להכיל לפחות 6 תווים"
                                     />
+                                    <p className="text-xs text-body italic mb-6">
+                                        לתשומת לב: שם המשתמש שנבחר למעלה חייב להכיל {USERNAME_FORMAT_RULE}
+                                    </p>
 
                                     {roleSelector}
 
@@ -488,7 +493,7 @@ const Register = () => {
                                     {usernameField}
 
                                     <TextField
-                                        className="mb-6"
+                                        className="mb-2"
                                         icon={Lock}
                                         label="סיסמה"
                                         type="password"
@@ -498,6 +503,9 @@ const Register = () => {
                                         disabled={loading}
                                         hint="הסיסמה חייבת להכיל לפחות 6 תווים — אין דרך לשחזר אותה אם תישכח"
                                     />
+                                    <p className="text-xs text-body italic mb-6">
+                                        לתשומת לב: שם המשתמש שנבחר למעלה חייב להכיל {USERNAME_FORMAT_RULE}
+                                    </p>
 
                                     {roleSelector}
 
