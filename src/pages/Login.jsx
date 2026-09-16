@@ -11,6 +11,7 @@ import { useAuth } from "../context/useAuth";
 import RoleSelector from "../components/RoleSelector";
 import { fetchUserProfile, createUserProfile } from "../services/userProfile";
 import { claimUsername } from "../services/usernameIndex";
+import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
 import { USERNAME_REGEX, normalizeUsername, syntheticEmailForUsername } from "../services/anonymousAccount";
 
 const Login = () => {
@@ -20,9 +21,10 @@ const Login = () => {
     const [method, setMethod] = useState("email"); // "email" | "username"
     const [identifier, setIdentifier] = useState(""); // email or username, depending on method
     const [password, setPassword] = useState("");
-    // Set once a username-method sign-in comes back user-not-found — asks
-    // for the one piece of information account creation still needs (role)
-    // before creating the account, instead of guessing it.
+    // Set once a username lookup (see handleFormSubmit) comes back with no
+    // matching account — asks for the one piece of information account
+    // creation still needs (role) before creating the account, instead of
+    // guessing it.
     const [pendingSignup, setPendingSignup] = useState(false);
     const [signupRole, setSignupRole] = useState("recipient");
 
@@ -58,34 +60,49 @@ const Login = () => {
             return;
         }
 
-        // Username-based login never needs a Firestore lookup — the account's
-        // Auth email is deterministically derived from the username at
-        // signup (see anonymousAccount.js), so it's simply recomputed here.
         const email = method === "username" ? syntheticEmailForUsername(identifier) : identifier;
 
         try {
             setLoading(true);
+
+            // Firebase Auth's email-enumeration protection (on by default in
+            // production) makes auth/user-not-found indistinguishable from a
+            // wrong password — both come back as auth/invalid-credential —
+            // so a username's existence can no longer be inferred from the
+            // sign-in error. It's checked separately here via the same
+            // public usernameIndex lookup used for the live availability
+            // check on /register. The username method doubles as signup for
+            // anonymous (no-email) accounts — nobody needs a separate
+            // /register trip just to pick a username and password. A
+            // username that doesn't exist yet isn't created immediately
+            // though: role (recipient/provider) is still required on every
+            // account and isn't guessable, so this only reveals the role
+            // picker below and waits for handleConfirmSignup instead of
+            // creating anything yet.
+            if (method === "username") {
+                const existing = await resolveUsernameToUser(identifier);
+                if (!existing) {
+                    setPendingSignup(true);
+                    return;
+                }
+            }
+
             const { user } = await signInWithEmailAndPassword(auth, email, password);
             toast.success("ההתחברות בוצעה בהצלחה", { position: "bottom-center" });
             await goToAppOrFinishRegistration(user);
         } catch (error) {
-            // The username method doubles as signup for anonymous (no-email)
-            // accounts — nobody needs a separate /register trip just to pick
-            // a username and password. A username that doesn't exist yet
-            // isn't created immediately though: role (recipient/provider) is
-            // still required on every account and isn't guessable, so this
-            // only reveals the role picker below and waits for
-            // handleConfirmSignup instead of creating anything yet.
-            if (method === "username" && error.code === "auth/user-not-found") {
-                setPendingSignup(true);
-                return;
-            }
-            if (error.code === "auth/user-not-found") {
-                toast.error("משתמש זה לא קיים", { position: "bottom-center" });
-            } else if (error.code === "auth/wrong-password") {
+            const isCredentialError = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found"].includes(error.code);
+            if (!isCredentialError) {
+                toast.error("שגיאה: " + error.message, { position: "bottom-center" });
+            } else if (method === "username") {
+                // Existence was already confirmed above, so a credential
+                // error here can only mean a wrong password.
                 toast.error("הסיסמה שגויה", { position: "bottom-center" });
             } else {
-                toast.error("שגיאה: " + error.message, { position: "bottom-center" });
+                // Enumeration protection also hides whether the email itself
+                // is registered, so wrong-email and wrong-password share one
+                // message here too.
+                toast.error("אימייל או סיסמה שגויים", { position: "bottom-center" });
             }
         } finally {
             setLoading(false);
