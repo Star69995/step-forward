@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { auth } from "../services/firebase";
 import { AuthContext } from "./AuthContextValue";
 import { ensureEmailIndex, fetchUserProfile, updateUserProfile } from "../services/userProfile";
+import { claimPendingSharesForEmail } from "../services/useShares";
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -34,7 +35,10 @@ export const AuthProvider = ({ children }) => {
         try {
             const profile = await fetchUserProfile(user.uid);
             setUserProfile(profile);
-            if (profile) ensureEmailIndex(user, profile.role, profile.displayName);
+            if (profile) {
+                ensureEmailIndex(user, profile.role, profile.displayName);
+                claimPendingSharesForEmail(user, profile);
+            }
         } catch (error) {
             // A sign-out mid-fetch (or a revoked session) rejects this
             // read after the caller stopped caring — nothing to show the
@@ -55,7 +59,10 @@ export const AuthProvider = ({ children }) => {
                 const profile = await fetchUserProfile(currentUser.uid);
                 if (cancelled) return;
                 setUserProfile(profile);
-                if (profile) ensureEmailIndex(currentUser, profile.role, profile.displayName);
+                if (profile) {
+                    ensureEmailIndex(currentUser, profile.role, profile.displayName);
+                    claimPendingSharesForEmail(currentUser, profile);
+                }
             } catch (error) {
                 if (cancelled) return;
                 console.error(error);

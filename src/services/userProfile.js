@@ -44,22 +44,30 @@ export const updateUserProfile = async (uid, fields) => {
     await setDoc(ref, fields, { merge: true });
 };
 
-// Best-effort: lets other users find this account by exact email (see
-// firestore.rules — requires a verified email, so this silently does
-// nothing until the user confirms their address). Not calling this is
-// never a user-facing failure, so permission-denied is swallowed here
-// rather than surfaced as an error.
-//
+// Shared prerequisite for any write/query that firestore.rules gates on
+// request.auth.token.email_verified (emailIndex creation below, and pending-
+// share claiming — see useShares.js's claimPendingSharesForEmail).
 // Verification usually happens by clicking the emailed link in a different
 // tab/session, so the local user object and its cached ID token can both be
 // stale here — reload() refreshes `emailVerified`, and getIdToken(true)
 // forces a fresh token so the `email_verified` claim firestore.rules checks
 // is actually up to date, instead of silently failing on a stale token.
+// Returns whether the caller can proceed (a real, now-verified email).
+export const ensureFreshVerifiedEmail = async (user) => {
+    await user.reload();
+    if (!user.email || !user.emailVerified) return false;
+    await user.getIdToken(true);
+    return true;
+};
+
+// Best-effort: lets other users find this account by exact email (see
+// firestore.rules — requires a verified email, so this silently does
+// nothing until the user confirms their address). Not calling this is
+// never a user-facing failure, so permission-denied is swallowed here
+// rather than surfaced as an error.
 export const ensureEmailIndex = async (user, role, displayName) => {
     try {
-        await user.reload();
-        if (!user.email || !user.emailVerified) return;
-        await user.getIdToken(true);
+        if (!(await ensureFreshVerifiedEmail(user))) return;
 
         const emailId = user.email.toLowerCase();
         await setDoc(

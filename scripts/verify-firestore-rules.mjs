@@ -31,6 +31,7 @@ import {
     where,
     getDocs,
     serverTimestamp,
+    writeBatch,
 } from "firebase/firestore";
 
 const PROJECT_ID = "demo-step-forward";
@@ -449,9 +450,171 @@ async function main() {
         deleteDoc(doc(rDb, `users/${rUid}/plans/${planId2}`))
     );
 
+    // 9. Pending shares by email — an invite for someone who hasn't
+    // registered yet (see useShares.js's addOrUpdatePendingShare/
+    // claimPendingSharesForEmail and Providers.jsx's fallback when
+    // resolveEmailToUser finds nobody). Doc ID under pendingShares/ is the
+    // lowercased email itself, exactly like emailIndex.
+    const futureProviderEmail = `future-provider-${stamp}@example.com`;
+    const otherPendingEmail = `other-pending-${stamp}@example.com`;
+
+    await expectOk("recipient creates a pending share for an unregistered email", () =>
+        setDoc(doc(rDb, `users/${rUid}/pendingShares/${futureProviderEmail}`), {
+            email: futureProviderEmail,
+            scope: "all",
+            planIds: [],
+            permission: "view",
+            recipientEmail,
+            recipientDisplayName: "",
+            recipientLabel: "",
+            recipientIsAnonymous: false,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            deletedAt: null,
+        })
+    );
+    await expectDenied("pending share create rejected when email field doesn't match the doc ID", () =>
+        setDoc(doc(rDb, `users/${rUid}/pendingShares/mismatched-${futureProviderEmail}`), {
+            email: futureProviderEmail,
+            scope: "all",
+            planIds: [],
+            permission: "view",
+        })
+    );
+    await expectDenied(
+        "a signed-in user CANNOT query pendingShares for an email that isn't their own verified one",
+        () => getDocs(query(collectionGroup(pDb, "pendingShares"), where("email", "==", futureProviderEmail)))
+    );
+    await expectOk("recipient can list their own pendingShares directly (not a collection-group query)", async () => {
+        const snap = await getDocs(collection(rDb, `users/${rUid}/pendingShares`));
+        if (snap.empty) throw new Error("expected the just-created pending share to be listed");
+    });
+
+    // The invited person finally registers with that exact email and
+    // verifies it — mirrors Register.jsx + AuthContext's ensureEmailIndex/
+    // claimPendingSharesForEmail flow.
+    const futureApp = initializeApp(config, "future-provider");
+    const fAuth = getAuth(futureApp);
+    const fDb = getFirestore(futureApp);
+    connectAuthEmulator(fAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(fDb, "127.0.0.1", 8080);
+    const fCred = await createUserWithEmailAndPassword(fAuth, futureProviderEmail, password);
+    const fUid = fCred.user.uid;
+    await verifyEmail(fAuth);
+    const fUsername = `futureprovider${stamp}`;
+    await expectOk("future provider claims own usernameIndex entry", () =>
+        setDoc(doc(fDb, `usernameIndex/${fUsername}`), { uid: fUid, role: "provider", username: fUsername })
+    );
+    await expectOk("future provider creates own users/{uid} profile", () =>
+        setDoc(doc(fDb, `users/${fUid}`), {
+            role: "provider",
+            email: futureProviderEmail,
+            displayName: "",
+            username: fUsername,
+            createdAt: serverTimestamp(),
+        })
+    );
+
+    await expectOk("the now-registered, verified matching-email user CAN find their own pending share", async () => {
+        const snap = await getDocs(
+            query(collectionGroup(fDb, "pendingShares"), where("email", "==", futureProviderEmail))
+        );
+        if (snap.empty) throw new Error("expected the pending share to be visible to its matching email");
+    });
+
+    // A stranger (registered provider, but with no invite waiting for them
+    // under this recipient) must not be able to grant themselves a share —
+    // the exact abuse case the exists()-gated self-claim create rule exists
+    // to prevent.
+    await expectDenied(
+        "an unrelated provider CANNOT self-claim a share with no matching pendingShares invite",
+        () =>
+            setDoc(doc(pDb, `users/${rUid}/shares/${pUid}-impersonation`), {
+                providerUid: `${pUid}-impersonation`,
+                scope: "all",
+                planIds: [],
+                permission: "edit",
+            })
+    );
+
+    // The actual claim: create the real share + delete the pending invite
+    // atomically, exactly as claimPendingSharesForEmail does.
+    await expectOk("matching-email user claims the pending share (creates real share + deletes pending doc)", async () => {
+        const batch = writeBatch(fDb);
+        batch.set(doc(fDb, `users/${rUid}/shares/${fUid}`), {
+            providerUid: fUid,
+            providerEmail: futureProviderEmail,
+            providerLabel: fUsername,
+            scope: "all",
+            planIds: [],
+            permission: "view",
+            recipientEmail,
+            recipientDisplayName: "",
+            recipientLabel: "",
+            recipientIsAnonymous: false,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            deletedAt: null,
+        });
+        batch.delete(doc(fDb, `users/${rUid}/pendingShares/${futureProviderEmail}`));
+        await batch.commit();
+    });
+    await expectOk("claimed share is now readable and the pending doc is gone", async () => {
+        const shareSnap = await getDoc(doc(rDb, `users/${rUid}/shares/${fUid}`));
+        if (!shareSnap.exists() || shareSnap.data().providerUid !== fUid) throw new Error("share not created correctly");
+        const pendingSnap = await getDoc(doc(rDb, `users/${rUid}/pendingShares/${futureProviderEmail}`));
+        if (pendingSnap.exists()) throw new Error("expected the pending share to be gone after claiming");
+    });
+    await expectDenied(
+        "the pending share is already consumed — the same user cannot self-claim it again",
+        () =>
+            setDoc(doc(fDb, `users/${rUid}/shares/${fUid}-second`), {
+                providerUid: `${fUid}-second`,
+                scope: "all",
+                planIds: [],
+                permission: "edit",
+            })
+    );
+    await expectDenied("a claimed provider still cannot self-upgrade their own share afterward", () =>
+        updateDoc(doc(fDb, `users/${rUid}/shares/${fUid}`), { permission: "edit" })
+    );
+
+    // Pending-share soft-delete/restore/hard-delete lifecycle — same
+    // trash.js pattern as every other entity, on a separate invite so it
+    // doesn't disturb the claim flow above.
+    await expectOk("recipient creates a second pending share", () =>
+        setDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`), {
+            email: otherPendingEmail,
+            scope: "all",
+            planIds: [],
+            permission: "view",
+            recipientEmail,
+            recipientDisplayName: "",
+            recipientLabel: "",
+            recipientIsAnonymous: false,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            deletedAt: null,
+        })
+    );
+    await expectDenied("recipient CANNOT hard-delete a pending share that isn't trashed yet", () =>
+        deleteDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`))
+    );
+    await expectOk("recipient soft-deletes (cancels) the pending share", () =>
+        updateDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`), { deletedAt: serverTimestamp() })
+    );
+    await expectOk("recipient restores the cancelled pending share", () =>
+        updateDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`), { deletedAt: null })
+    );
+    await expectOk("recipient re-cancels then hard-deletes the pending share", async () => {
+        await updateDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`), { deletedAt: serverTimestamp() });
+        await deleteDoc(doc(rDb, `users/${rUid}/pendingShares/${otherPendingEmail}`));
+    });
+
     console.log(`\n${passed} passed, ${failed} failed`);
     await deleteApp(recipientApp);
     await deleteApp(providerApp);
+    await deleteApp(futureApp);
     process.exit(failed > 0 ? 1 : 0);
 }
 

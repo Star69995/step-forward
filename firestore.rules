@@ -189,9 +189,29 @@ service cloud.firestore {
       allow read: if isSignedIn()
         && (request.auth.uid == recipientUid || request.auth.uid == providerUid);
 
-      // create/update (never delete, which has no request.resource) are
-      // validated against the full grant shape.
-      allow create, update: if isSignedIn() && request.auth.uid == recipientUid
+      // Validated against the full grant shape. Normally only the owning
+      // recipient can write this — but create also allows a provider to
+      // self-claim a matching pending invite by email (see pendingShares
+      // below and useShares.js's claimPendingSharesForEmail): once
+      // registered/verified, the invited person converts their own
+      // pendingShares doc into this real grant themselves, nobody else
+      // needs to act. That self-claim is create-only, never update — after
+      // claiming, only the recipient may change scope/permission again.
+      allow create: if (isSignedIn() && request.auth.uid == recipientUid
+          && request.resource.data.providerUid == providerUid
+          && request.resource.data.scope in ['all', 'selected']
+          && request.resource.data.permission in ['view', 'edit']
+          && (request.resource.data.scope == 'all' || request.resource.data.planIds is list))
+        || (isSignedIn() && request.auth.uid == providerUid
+          && request.auth.token.email_verified == true
+          && exists(/databases/$(database)/documents/users/$(recipientUid)/pendingShares/$(request.auth.token.email.lower()))
+          && get(/databases/$(database)/documents/users/$(providerUid)).data.role == 'provider'
+          && request.resource.data.providerUid == providerUid
+          && request.resource.data.scope in ['all', 'selected']
+          && request.resource.data.permission in ['view', 'edit']
+          && (request.resource.data.scope == 'all' || request.resource.data.planIds is list));
+
+      allow update: if isSignedIn() && request.auth.uid == recipientUid
         && request.resource.data.providerUid == providerUid
         && request.resource.data.scope in ['all', 'selected']
         && request.resource.data.permission in ['view', 'edit']
@@ -214,6 +234,47 @@ service cloud.firestore {
     // covers the equivalent direct-path read.
     match /{path=**}/shares/{providerUid} {
       allow read: if isSignedIn() && resource.data.providerUid == request.auth.uid;
+    }
+
+    // ---------------------------------------------------------------
+    // users/{recipientUid}/pendingShares/{lowercasedEmail}
+    // An invite by email for someone who hasn't registered yet — see
+    // useShares.js's addOrUpdatePendingShare/claimPendingSharesForEmail.
+    // Doc ID is the lowercased email itself (same exact-match-only
+    // principle as emailIndex), enforced to also equal the stored `email`
+    // field. Recipient-owned like `shares`, except create/delete also let
+    // whoever's OWN verified email matches this doc claim it themselves —
+    // no recipient action required once the invited person exists.
+    // ---------------------------------------------------------------
+    match /users/{recipientUid}/pendingShares/{emailId} {
+      allow read: if isSignedIn() && request.auth.uid == recipientUid;
+
+      allow create, update: if isSignedIn() && request.auth.uid == recipientUid
+        && request.resource.data.email == emailId
+        && request.resource.data.scope in ['all', 'selected']
+        && request.resource.data.permission in ['view', 'edit']
+        && (request.resource.data.scope == 'all' || request.resource.data.planIds is list);
+
+      // The recipient's own soft-delete (cancel) is the `update` above
+      // (deletedAt set), same as every other trashed entity. A real delete
+      // is available to the recipient once already trashed, OR to whoever's
+      // own verified email matches — that's the invited person converting
+      // this doc into a real share (see the `shares` create rule above),
+      // deleting the pending doc as part of the same claim.
+      allow delete: if (isSignedIn() && request.auth.uid == recipientUid && resource.data.deletedAt != null)
+        || (isSignedIn() && request.auth.token.email_verified == true
+            && request.auth.token.email.lower() == resource.data.email);
+    }
+
+    // Same reasoning as the equivalent `shares` block above: a
+    // collectionGroup('pendingShares') query (claimPendingSharesForEmail,
+    // discovering every invite addressed to "my" email across all
+    // recipients) needs its own {path=**} rule — the specific match block
+    // is never consulted for a collection-group query, only for a direct
+    // path read/write.
+    match /{path=**}/pendingShares/{emailId} {
+      allow read: if isSignedIn() && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == resource.data.email;
     }
   }
 }
