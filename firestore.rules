@@ -140,7 +140,11 @@ service cloud.firestore {
       // Any accessor (owner, view-grant, or edit-grant provider) may
       // read/create; only the recipient or the comment's own author may
       // edit it (including soft-delete/restore). A real delete additionally
-      // requires the comment to already be trashed.
+      // requires the comment to already be trashed. targetGoal is a generic
+      // section key (null = whole plan, 'one'/'two'/'three' = a short goal,
+      // 'preparation' = the preparation section, ...) - any short
+      // alphanumeric key, so a new section can get its own thread without a
+      // rules change, but never an arbitrary/oversized value.
       // ---------------------------------------------------------------
       match /comments/{commentId} {
         allow read: if isSignedIn()
@@ -149,7 +153,9 @@ service cloud.firestore {
         allow create: if isSignedIn()
           && (request.auth.uid == recipientUid || canAccessPlan(recipientUid, planId))
           && request.resource.data.authorUid == request.auth.uid
-          && request.resource.data.targetGoal in [null, 'one', 'two', 'three'];
+          && (request.resource.data.targetGoal == null
+            || (request.resource.data.targetGoal is string
+              && request.resource.data.targetGoal.matches('^[A-Za-z0-9]{1,32}$')));
 
         allow update: if isSignedIn()
           && (request.auth.uid == recipientUid || resource.data.authorUid == request.auth.uid);

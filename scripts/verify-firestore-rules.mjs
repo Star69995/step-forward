@@ -261,6 +261,36 @@ async function main() {
             createdAt: serverTimestamp(),
         })
     );
+    await expectOk("provider CAN comment on a named section (targetGoal: preparation)", () =>
+        setDoc(doc(collection(pDb, `users/${rUid}/plans/${planId}/comments`), "c-prep"), {
+            text: "Good preparation",
+            targetGoal: "preparation",
+            authorUid: pUid,
+            authorName: "Provider",
+            authorRole: "provider",
+            createdAt: serverTimestamp(),
+        })
+    );
+    await expectDenied("comment with a malformed targetGoal is rejected", () =>
+        setDoc(doc(collection(pDb, `users/${rUid}/plans/${planId}/comments`), "c-bad"), {
+            text: "x",
+            targetGoal: "../shares",
+            authorUid: pUid,
+            authorName: "Provider",
+            authorRole: "provider",
+            createdAt: serverTimestamp(),
+        })
+    );
+    await expectDenied("comment with a non-string targetGoal is rejected", () =>
+        setDoc(doc(collection(pDb, `users/${rUid}/plans/${planId}/comments`), "c-bad2"), {
+            text: "x",
+            targetGoal: 42,
+            authorUid: pUid,
+            authorName: "Provider",
+            authorRole: "provider",
+            createdAt: serverTimestamp(),
+        })
+    );
     await expectOk("collection-group query finds the share for the provider", async () => {
         const snap = await getDocs(
             query(collectionGroup(pDb, "shares"), where("providerUid", "==", pUid))
