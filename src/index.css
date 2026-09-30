@@ -105,6 +105,16 @@
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Single guarantee against iOS Safari zooming in on focus: it zooms any
+ focusable field whose font-size is below 16px. Kept outside any @layer so it
+ wins over utility classes (text-sm etc.) on a field; never solved with
+ user-scalable=no / maximum-scale in the viewport meta, which block pinch-zoom. */
+input,
+textarea,
+select {
+  font-size: max(16px, 1em);
+}
+
 @layer utilities {
   * {
     margin: 0;
