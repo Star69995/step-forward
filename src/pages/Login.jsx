@@ -140,7 +140,7 @@ const Login = () => {
             await createUserProfile(user, signupRole, { username: normalizedUsername, isAnonymous: true });
             await refreshProfile(user);
             toast.success("נוצר חשבון חדש והתחברת בהצלחה", { position: "bottom-center" });
-            toast.info("זהו חשבון ללא מייל — לא ניתן לשחזר אותו אם הסיסמה תישכח", {
+            toast.info("זהו חשבון ללא מייל - לא ניתן לשחזר אותו אם הסיסמה תישכח", {
                 position: "bottom-center",
                 autoClose: 8000,
             });
@@ -235,7 +235,7 @@ const Login = () => {
                         {pendingSignup ? (
                             <>
                                 <p className="text-sm text-body mb-3">
-                                    שם המשתמש "{identifier}" עדיין לא קיים — ליצירת חשבון חדש יש לבחור סוג משתמש:
+                                    שם המשתמש "{identifier}" עדיין לא קיים - ליצירת חשבון חדש יש לבחור סוג משתמש:
                                 </p>
                                 <RoleSelector value={signupRole} onChange={setSignupRole} className="mb-5" />
                                 <div className="flex gap-3">

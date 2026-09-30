@@ -99,7 +99,7 @@ const GoalSection = ({
                     <span className="w-1 h-5 rounded-sm" style={{ backgroundColor: accent }}></span>
                     <Target size={16} aria-hidden="true" />
                     יעדים ספציפיים
-                    <InfoHint text="יעד קטן וממוקד שאפשר לבדוק אם הושג עד תאריך מסוים — למשל צעד מעשי אחד בדרך למטרה." />
+                    <InfoHint text="יעד קטן וממוקד שאפשר לבדוק אם הושג עד תאריך מסוים - למשל צעד מעשי אחד בדרך למטרה." />
                 </label>
 
                 <div>

@@ -131,7 +131,7 @@ const VersionHistory = ({ ownerUid, planId, canEdit, editor, onReverted }) => {
                                 )}
 
                                 {!previous ? (
-                                    <p className="text-body">גרסה ראשונית — יצירת התוכנית</p>
+                                    <p className="text-body">גרסה ראשונית - יצירת התוכנית</p>
                                 ) : diffs.length === 0 ? (
                                     <p className="text-muted">לא זוהו שינויים בתוכן</p>
                                 ) : (

@@ -33,7 +33,7 @@ const validateUsernameFormat = (value) => {
 };
 
 const ANONYMOUS_WARNING =
-    "לא ניתן לשחזר חשבון זה בשום צורה — אין מייל, ואי אפשר לאפס סיסמה שנשכחה. אם הסיסמה תישכח, כל התוכן בחשבון יאבד לצמיתות.";
+    "לא ניתן לשחזר חשבון זה בשום צורה - אין מייל, ואי אפשר לאפס סיסמה שנשכחה. אם הסיסמה תישכח, כל התוכן בחשבון יאבד לצמיתות.";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -265,7 +265,7 @@ const Register = () => {
                 // `currentUser` updates) and show the completion screen to
                 // finish with a different username, with role/name already
                 // known from this same submission.
-                toast.error("שם המשתמש כבר תפוס — יש לבחור שם אחר לסיום ההרשמה", { position: "bottom-center" });
+                toast.error("שם המשתמש כבר תפוס - יש לבחור שם אחר לסיום ההרשמה", { position: "bottom-center" });
                 return;
             }
             await createUserProfile(user, role, { username: normalizeUsername(username), isAnonymous: false });
@@ -274,7 +274,7 @@ const Register = () => {
             // AuthContext's own (possibly already-stale) currentUser effect.
             await refreshProfile(user);
             toast.success("ההרשמה בוצעה בהצלחה, ברוכים הבאים", { position: "bottom-center" });
-            toast.info("נשלח מייל לאישור הכתובת — האישור נדרש בהמשך כדי לשתף/להתחבר עם משתמשים אחרים", {
+            toast.info("נשלח מייל לאישור הכתובת - האישור נדרש בהמשך כדי לשתף/להתחבר עם משתמשים אחרים", {
                 position: "bottom-center",
                 autoClose: 8000,
             });
@@ -377,7 +377,7 @@ const Register = () => {
                         <>
                             <p className="text-body mb-4 text-sm">
                                 {needsRole
-                                    ? "ההתחברות בוצעה בהצלחה — נותר לאשר את השם, לבחור את סוג המשתמש ולבחור שם משתמש כדי לסיים את ההרשמה."
+                                    ? "ההתחברות בוצעה בהצלחה - נותר לאשר את השם, לבחור את סוג המשתמש ולבחור שם משתמש כדי לסיים את ההרשמה."
                                     : "נדרש לבחור שם משתמש ייחודי כדי להמשיך להשתמש בחשבון (משמש גם לשיתוף וגם להתחברות)."}
                             </p>
                             {needsRole && (
@@ -501,7 +501,7 @@ const Register = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         disabled={loading}
-                                        hint="הסיסמה חייבת להכיל לפחות 6 תווים — אין דרך לשחזר אותה אם תישכח"
+                                        hint="הסיסמה חייבת להכיל לפחות 6 תווים - אין דרך לשחזר אותה אם תישכח"
                                     />
                                     <p className="text-xs text-body italic mb-6">
                                         לתשומת לב: שם המשתמש שנבחר למעלה חייב להכיל {USERNAME_FORMAT_RULE}

@@ -38,6 +38,10 @@ const Button = ({
     loading = false,
     loadingText = "טוען...",
     fullWidth = false,
+    // Long labels (a full sentence) may wrap instead of overflowing a
+    // narrow container - off by default so short labels in a row still
+    // push the row to wrap rather than squeezing into two lines.
+    wrap = false,
     disabled = false,
     type = "button",
     className = "",
@@ -51,7 +55,8 @@ const Button = ({
             fullWidth ? "w-full" : "",
             rounded,
             SIZES[size],
-            "font-bold transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap",
+            "font-bold transition-all duration-200 flex items-center justify-center gap-2",
+            wrap ? "whitespace-normal text-center max-w-full" : "whitespace-nowrap",
             "hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
             "disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed",
             VARIANTS[variant],
@@ -68,7 +73,7 @@ const Button = ({
             </>
         ) : (
             <>
-                {Icon && <Icon size={size === "sm" ? 16 : 18} aria-hidden="true" />}
+                {Icon && <Icon size={size === "sm" ? 16 : 18} className="shrink-0" aria-hidden="true" />}
                 {children}
             </>
         )}

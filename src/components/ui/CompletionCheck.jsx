@@ -68,7 +68,7 @@ const CompletionCheck = ({
                         value={date}
                         onChange={(e) => onDateChange?.(e.target.value)}
                         disabled={disabled}
-                        className="accent-field px-3 py-1.5 rounded-lg bg-surface text-heading font-sans text-sm disabled:cursor-not-allowed disabled:bg-surface-muted"
+                        className="accent-field px-3 py-1.5 rounded-lg bg-surface text-heading font-sans text-base disabled:cursor-not-allowed disabled:bg-surface-muted"
                         style={{ "--accent": color }}
                     />
                 </div>

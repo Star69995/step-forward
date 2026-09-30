@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import GoalSection from "../components/GoalSection";
 import TextField from "../components/ui/TextField";
 import useMediaQuery from "../services/useMediaQuery";
+import useSoftKeyboardOpen from "../services/useSoftKeyboardOpen";
 import { loadPlan } from "../services/loadPlan";
 import { fetchShare } from "../services/useShares";
 import { useComments } from "../services/useComments";
@@ -106,6 +107,12 @@ const FormPage = () => {
         observer.observe(el);
         return () => observer.disconnect();
     }, []);
+
+    // While the on-screen keyboard is open, the action bar drops out of its
+    // fixed position into normal flow at the end of the page, so it only
+    // shows once scrolled all the way down instead of covering the fields
+    // being typed into (and, on iOS, drifting with the visual viewport).
+    const keyboardOpen = useSoftKeyboardOpen();
 
     // A new plan opens ready to fill in; an existing plan opens locked for
     // review, with only the goal/target completion checkboxes live — see
@@ -332,7 +339,7 @@ const FormPage = () => {
                     setSaveStatus("error");
                     toast.error(
                         !isOwner
-                            ? "שגיאה בשמירה — ייתכן שההרשאה לעריכת תוכנית זו בוטלה"
+                            ? "שגיאה בשמירה - ייתכן שההרשאה לעריכת תוכנית זו בוטלה"
                             : "שגיאה בשמירה האוטומטית, מומלץ לשמור ידנית"
                     );
                 }
@@ -360,8 +367,8 @@ const FormPage = () => {
             <div dir="rtl" id="formArea" className="min-h-screen pb-8">
                 {/* HEADER */}
                 <div className="text-white py-12 mb-8 shadow-xs bg-linear-to-br from-primary to-secondary">
-                    <div className="max-w-6xl mx-auto px-4">
-                        <h1 className="flex items-center gap-2 text-4xl font-bold mb-2">
+                    <div className="max-w-6xl mx-auto px-4 text-center">
+                        <h1 className="flex items-center justify-center gap-2 text-4xl font-bold mb-2">
                             <Footprints size={32} aria-hidden="true" />
                             צעד קדימה
                         </h1>
@@ -371,7 +378,7 @@ const FormPage = () => {
 
                 <div
                     className="max-w-6xl mx-auto px-4 pb-24 sm:pb-20"
-                    style={actionBarHeight ? { paddingBottom: `${actionBarHeight + 16}px` } : undefined}
+                    style={keyboardOpen ? { paddingBottom: "16px" } : actionBarHeight ? { paddingBottom: `${actionBarHeight + 16}px` } : undefined}
                 >
                     {!isOwner && (
                         <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-info/10 border-r-4 border-info pdf-hidden">
@@ -386,15 +393,15 @@ const FormPage = () => {
                      management, edit/view toggle) live in the fixed action bar
                      at the bottom so they're reachable from anywhere on the
                      page, not just when scrolled to the top. */}
-                    <div className="flex items-center gap-2 mb-6 pdf-hidden text-sm font-semibold text-body">
+                    <div className="flex items-center justify-center sm:justify-start text-center sm:text-start gap-2 mb-6 pdf-hidden text-sm font-semibold text-body">
                         {effectiveViewMode ? (
                             <Eye size={16} aria-hidden="true" />
                         ) : (
                             <Pencil size={16} aria-hidden="true" />
                         )}
                         {effectiveViewMode
-                            ? "מצב תצוגה — תוכן התוכנית נעול, ניתן לסמן התקדמות"
-                            : "מצב עריכה — ניתן לערוך את תוכן התוכנית"}
+                            ? "מצב תצוגה - תוכן התוכנית נעול, ניתן לסמן התקדמות"
+                            : "מצב עריכה - ניתן לערוך את תוכן התוכנית"}
                     </div>
 
                     {/* GENERAL INFO SECTION */}
@@ -418,7 +425,7 @@ const FormPage = () => {
                                                 placeholder="לא נשמר בחשבון אנונימי"
                                             />
                                             <small className="block text-muted text-xs mt-1.5">
-                                                בחשבון אנונימי השם לא נשמר — ניתן להוסיף אותו זמנית בעת ייצוא ל-PDF בלבד
+                                                בחשבון אנונימי השם לא נשמר - ניתן להוסיף אותו זמנית בעת ייצוא ל-PDF בלבד
                                             </small>
                                         </>
                                     ) : (
@@ -792,10 +799,11 @@ const FormPage = () => {
                  once scrolled all the way to their spot. A page with a taller
                  Header (e.g. narrow phones, where it wraps to more than one
                  line) just pushes this bar's own content to wrap too — it
-                 isn't anchored to the Header's height. */}
+                 isn't anchored to the Header's height. While the on-screen
+                 keyboard is open it's in normal flow instead (see keyboardOpen). */}
                 <div
                     ref={actionBarRef}
-                    className="fixed inset-x-0 bottom-0 z-30 pdf-hidden bg-surface/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.08)]"
+                    className={`${keyboardOpen ? "relative" : "fixed inset-x-0 bottom-0"} z-30 pdf-hidden bg-surface/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.08)]`}
                 >
                     <div className="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
                         {isOwner && role === "recipient" && (
@@ -819,7 +827,7 @@ const FormPage = () => {
                             </Button>
                         ) : (
                             <Badge variant="info" icon={Eye}>
-                                צפייה בלבד — אין הרשאת עריכה
+                                צפייה בלבד - אין הרשאת עריכה
                             </Badge>
                         )}
                         <PDFButton
@@ -856,7 +864,7 @@ const FormPage = () => {
             <PromptDialog
                 open={pdfNamePromptOpen}
                 title="הוספת שם למסמך המיוצא"
-                message="השם לא יישמר בחשבון או בתוכנית — הוא ישמש רק למסמך ה-PDF הזה."
+                message="השם לא יישמר בחשבון או בתוכנית - הוא ישמש רק למסמך ה-PDF הזה."
                 fields={[
                     {
                         label: "שם (רשות)",

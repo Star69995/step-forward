@@ -76,7 +76,7 @@ const PDFButton = ({ targetId, autoTrigger = false, size = "md", onBeforeExport 
         const fieldSwaps = [];
         textFields.forEach((field) => {
             const display = document.createElement("div");
-            display.textContent = field.value || "—";
+            display.textContent = field.value || "-";
             display.className = "pdf-plain-text";
             field.insertAdjacentElement("afterend", display);
             field.style.display = "none";

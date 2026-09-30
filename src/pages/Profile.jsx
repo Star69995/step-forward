@@ -35,6 +35,7 @@ import TrashSection from "../components/ui/TrashSection";
 import RoleBadge from "../components/RoleBadge";
 import Badge from "../components/ui/Badge";
 import SegmentedToggle from "../components/ui/SegmentedToggle";
+import TitleRow from "../components/ui/TitleRow";
 import { convertToAnonymous, convertToRegular } from "../services/accountConversion";
 
 const Profile = () => {
@@ -126,7 +127,7 @@ const Profile = () => {
         try {
             await convertToRegular(currentUser, toRegularPassword, toRegularEmail);
             await refreshProfile();
-            toast.success("החשבון הומר לחשבון רגיל — נשלח מייל אימות לכתובת החדשה");
+            toast.success("החשבון הומר לחשבון רגיל - נשלח מייל אימות לכתובת החדשה");
             setConvertingToRegular(false);
             setToRegularPassword("");
             setToRegularEmail("");
@@ -202,9 +203,9 @@ const Profile = () => {
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header Section */}
                 <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
-                    <div className="flex justify-between items-start gap-4 flex-wrap">
-                        <div className="min-w-0">
-                            <h2 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold text-heading mb-1 flex-wrap">
+                    <div className="flex flex-col items-center text-center sm:flex-row sm:justify-between sm:items-start sm:text-start gap-4 sm:flex-wrap">
+                        <div className="min-w-0 w-full sm:w-auto">
+                            <h2 className="flex items-center justify-center sm:justify-start gap-2 text-2xl sm:text-3xl font-bold text-heading mb-1 flex-wrap">
                                 <User size={26} className="shrink-0" aria-hidden="true" />
                                 <span className="wrap-break-word">
                                     שלום, {formatUserLabel({ displayName: currentUser?.displayName, username: userProfile?.username, email: currentUser?.email })}
@@ -212,12 +213,12 @@ const Profile = () => {
                                 <RoleBadge role={role} />
                             </h2>
                             {isAnonymous ? (
-                                <small className="text-muted">חשבון אנונימי — אין מייל</small>
+                                <small className="text-muted">חשבון אנונימי - אין מייל</small>
                             ) : (
                                 <small className="text-muted">{currentUser?.email}</small>
                             )}
                             {!isAnonymous && (
-                                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                <div className="mt-2 flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                                     {emailVerified ? (
                                         <Badge variant="success" icon={MailCheck}>
                                             מייל מאושר
@@ -241,7 +242,7 @@ const Profile = () => {
                                     )}
                                 </div>
                             )}
-                            <div className="mt-4 flex items-center gap-3 flex-wrap">
+                            <div className="mt-4 flex items-center justify-center sm:justify-start gap-x-3 gap-y-2 flex-wrap">
                                 <span className="text-sm font-semibold text-body">צפיפות תצוגה</span>
                                 <SegmentedToggle
                                     value={density}
@@ -252,7 +253,7 @@ const Profile = () => {
                                     ]}
                                 />
                             </div>
-                            <div className="mt-3 flex items-center gap-3 flex-wrap">
+                            <div className="mt-3 flex items-center justify-center sm:justify-start gap-x-3 gap-y-2 flex-wrap">
                                 <span className="text-sm font-semibold text-body">מצב תצוגה</span>
                                 <SegmentedToggle
                                     value={themeMode}
@@ -265,7 +266,7 @@ const Profile = () => {
                                 />
                             </div>
                             {(isAnonymous || hasPasswordProvider) && (
-                                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                                <div className="mt-4 flex items-center justify-center sm:justify-start gap-x-3 gap-y-2 flex-wrap">
                                     <span className="text-sm font-semibold text-body">סוג חשבון</span>
                                     {isAnonymous ? (
                                         <Button
@@ -273,6 +274,7 @@ const Profile = () => {
                                             size="sm"
                                             rounded="rounded-lg"
                                             icon={ShieldQuestion}
+                                            wrap
                                             onClick={() => setConvertingToRegular(true)}
                                         >
                                             המרה לחשבון רגיל (עם מייל, ניתן לשחזור)
@@ -284,6 +286,7 @@ const Profile = () => {
                                                 size="sm"
                                                 rounded="rounded-lg"
                                                 icon={ShieldQuestion}
+                                                wrap
                                                 onClick={() => setConvertingToAnonymous(true)}
                                             >
                                                 המרה לחשבון אנונימי (ללא מייל, לא ניתן לשחזור)
@@ -293,7 +296,7 @@ const Profile = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:flex-wrap w-full sm:w-auto">
                             {role === "recipient" && (
                                 <Button
                                     variant="outline"
@@ -318,15 +321,17 @@ const Profile = () => {
 
                 {/* Plans Section */}
                 <div>
-                    <div className="flex justify-between items-center gap-4 mb-6 flex-wrap">
-                        <h3 className="flex items-center gap-2 text-2xl font-bold text-primary">
-                            <ClipboardList size={24} className="text-primary" aria-hidden="true" />
-                            התוכניות השמורות
-                        </h3>
+                    <TitleRow
+                        as="h3"
+                        icon={ClipboardList}
+                        title="התוכניות השמורות"
+                        headingClassName="text-2xl font-bold text-primary"
+                        className="mb-6"
+                    >
                         <Button variant="success" icon={Plus} rounded="rounded-lg" onClick={handleNewPlan}>
                             תוכנית חדשה
                         </Button>
-                    </div>
+                    </TitleRow>
 
                     {loading ? (
                         <div className="bg-surface rounded-2xl shadow-xs p-12 text-center text-body">
@@ -350,7 +355,7 @@ const Profile = () => {
                                 >
                                     {/* Card Header */}
                                     <div className="bg-surface-muted px-6 py-4 border-b border-border">
-                                        <h5 className="flex items-center gap-1.5 font-bold text-heading wrap-break-word">
+                                        <h5 className="flex items-center justify-center md:justify-start gap-1.5 font-bold text-heading wrap-break-word">
                                             <Clock size={14} aria-hidden="true" />
                                             {formatPlanLabel(plan, plans)}
                                         </h5>
@@ -435,7 +440,7 @@ const Profile = () => {
             <PromptDialog
                 open={convertingToAnonymous}
                 title="המרה לחשבון אנונימי"
-                message="לא ניתן יהיה לשחזר את החשבון בשום צורה לאחר ההמרה — לא יהיה מייל מקושר, ואי אפשר לאפס סיסמה שנשכחה. יש להזין את הסיסמה הנוכחית לאישור."
+                message="לא ניתן יהיה לשחזר את החשבון בשום צורה לאחר ההמרה - לא יהיה מייל מקושר, ואי אפשר לאפס סיסמה שנשכחה. יש להזין את הסיסמה הנוכחית לאישור."
                 fields={[
                     {
                         label: "סיסמה נוכחית",

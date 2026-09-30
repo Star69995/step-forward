@@ -31,7 +31,7 @@ const BEFORE_AFTER = [
         label: "עם צעד קדימה",
         title: "תוכנית חיה שמתעדכנת יחד איתכם",
         description:
-            "אותה תוכנית הופכת לכלי דיגיטלי אחד, שמקבל/ת השירות ונותני השירות עורכים ומעדכנים יחד לאורך כל הדרך — לא רק פעם בחצי שנה.",
+            "אותה תוכנית הופכת לכלי דיגיטלי אחד, שמקבל/ת השירות ונותני השירות עורכים ומעדכנים יחד לאורך כל הדרך - לא רק פעם בחצי שנה.",
     },
 ];
 
@@ -39,22 +39,22 @@ const FEATURES = [
     {
         icon: Target,
         title: "תוכנית אישית וברורה",
-        description: "הגדרת מטרות לטווח קצר וארוך, יעדים מדידים ולוחות זמנים — הכל במקום אחד, בקצב שלכם.",
+        description: "הגדרת מטרות לטווח קצר וארוך, יעדים מדידים ולוחות זמנים - הכל במקום אחד, בקצב שלכם.",
     },
     {
         icon: TrendingUp,
         title: "מעקב התקדמות אמיתי",
-        description: "סימון משימות שבוצעו, תיעוד הצלחות ולמידה מהדרך — כדי לראות את השינוי ולא רק לדבר עליו.",
+        description: "סימון משימות שבוצעו, תיעוד הצלחות ולמידה מהדרך - כדי לראות את השינוי ולא רק לדבר עליו.",
     },
     {
         icon: HeartHandshake,
         title: "עריכה משותפת עם מי שמלווה אתכם",
-        description: "התוכנית נערכת ומתעדכנת יחד עם אנשי המקצוע שמלווים אתכם, ולא רק על ידם — אפשר לשתף אותה, כולה או חלקים ממנה, ולקבוע בעצמכם מה הם רואים ומה הם יכולים לערוך.",
+        description: "התוכנית נערכת ומתעדכנת יחד עם אנשי המקצוע שמלווים אתכם, ולא רק על ידם - אפשר לשתף אותה, כולה או חלקים ממנה, ולקבוע בעצמכם מה הם רואים ומה הם יכולים לערוך.",
     },
     {
         icon: MessageSquare,
         title: "הערות ועדכונים לאורך הדרך",
-        description: "גם אתם וגם מי שמלווה אתכם יכולים להוסיף הערות מתועדות על ההתקדמות — על התוכנית כולה או על מטרה ספציפית.",
+        description: "גם אתם וגם מי שמלווה אתכם יכולים להוסיף הערות מתועדות על ההתקדמות - על התוכנית כולה או על מטרה ספציפית.",
     },
     {
         icon: ShieldCheck,
@@ -84,7 +84,7 @@ const Landing = () => {
                         צעד קדימה
                     </h1>
                     <p className="text-lg sm:text-xl opacity-90 max-w-2xl mx-auto mb-8">
-                        במקום תוכנית שיקום שנכתבת על דף פעם בחצי שנה, צעד קדימה הופך אותה לכלי דיגיטלי חי — כדי לקחת
+                        במקום תוכנית שיקום שנכתבת על דף פעם בחצי שנה, צעד קדימה הופך אותה לכלי דיגיטלי חי - כדי לקחת
                         חלק פעיל בתהליך השיקום של עצמכם, יחד עם מי שמלווה אתכם בדרך, בפרטיות ובשליטה מלאה על מה
                         שמשותף.
                     </p>
@@ -127,7 +127,7 @@ const Landing = () => {
                 <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center mb-10">מדף נייר לכלי חי</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-section-gap)] items-stretch">
                     {BEFORE_AFTER.map(({ icon: Icon, tone, label, title, description }) => (
-                        <div key={title} className="bg-surface rounded-2xl shadow-xs p-[var(--space-card-pad)]">
+                        <div key={title} className="bg-surface rounded-2xl shadow-xs p-[var(--space-card-pad)] text-center">
                             <span
                                 className={`inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 ${tone}`}
                             >
@@ -144,9 +144,14 @@ const Landing = () => {
             {/* How it helps */}
             <div className="max-w-6xl mx-auto px-4 py-16">
                 <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center mb-10">איך זה עוזר בחיים</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-section-gap)]">
+                {/* Flex-wrap rather than grid so a partial last row (5 cards in rows
+                 of 2 or 3) centers instead of hugging the right edge. */}
+                <div className="flex flex-wrap justify-center gap-[var(--space-section-gap)]">
                     {FEATURES.map(({ icon: Icon, title, description }) => (
-                        <div key={title} className="bg-surface rounded-2xl shadow-xs p-[var(--space-card-pad)]">
+                        <div
+                            key={title}
+                            className="w-full md:w-[calc((100%_-_var(--space-section-gap))/2)] lg:w-[calc((100%_-_2*var(--space-section-gap))/3)] bg-surface rounded-2xl shadow-xs p-[var(--space-card-pad)] text-center"
+                        >
                             <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary mb-4">
                                 <Icon size={22} aria-hidden="true" />
                             </span>

@@ -19,6 +19,7 @@ import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
 import { formatUserLabel } from "../services/userProfile";
 import { isSyntheticEmail } from "../services/anonymousAccount";
 import Button from "../components/ui/Button";
+import TitleRow from "../components/ui/TitleRow";
 import TextField from "../components/ui/TextField";
 import Badge from "../components/ui/Badge";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -366,17 +367,13 @@ const Providers = () => {
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-3xl mx-auto px-4">
                 <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg p-[var(--space-hero-pad)]">
-                    <div className="flex justify-between items-center gap-4 mb-[var(--space-section-gap)] flex-wrap">
-                        <h2 className="flex items-center gap-2 text-2xl font-bold text-heading">
-                            <HeartHandshake size={24} aria-hidden="true" />
-                            נותני שירות
-                        </h2>
+                    <TitleRow icon={HeartHandshake} title="נותני שירות" className="mb-[var(--space-section-gap)]">
                         {editingId === null && (
                             <Button variant="success" size="sm" icon={Plus} onClick={openNewForm}>
                                 הוספת נותן שירות
                             </Button>
                         )}
-                    </div>
+                    </TitleRow>
 
                     {editingId === "new" && renderForm()}
 
@@ -395,13 +392,13 @@ const Providers = () => {
                                 ) : (
                                     <div
                                         key={share.id}
-                                        className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-border flex-wrap"
+                                        className="flex flex-col items-center text-center sm:flex-row sm:justify-between sm:text-start gap-3 p-4 rounded-xl border-2 border-border sm:flex-wrap"
                                     >
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="font-semibold text-heading">
                                                 {share.providerLabel || formatUserLabel({ email: share.providerEmail })}
                                             </p>
-                                            <div className="flex gap-2 mt-1 flex-wrap">
+                                            <div className="flex justify-center sm:justify-start gap-2 mt-1 flex-wrap">
                                                 <Badge variant="gray" icon={share.scope === "all" ? Globe : ListChecks}>
                                                     {share.scope === "all"
                                                         ? "כל התוכניות"
@@ -441,18 +438,18 @@ const Providers = () => {
 
                     {!loadingPending && pendingShares.length > 0 && (
                         <div className="flex flex-col gap-3 mt-4">
-                            <span className="block text-sm font-semibold text-heading">הזמנות ממתינות להרשמה</span>
+                            <span className="block text-sm font-semibold text-heading text-center sm:text-start">הזמנות ממתינות להרשמה</span>
                             {pendingShares.map((pending) =>
                                 editingId === `${PENDING_PREFIX}${pending.id}` ? (
                                     <div key={pending.id}>{renderForm()}</div>
                                 ) : (
                                     <div
                                         key={pending.id}
-                                        className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-dashed border-border flex-wrap"
+                                        className="flex flex-col items-center text-center sm:flex-row sm:justify-between sm:text-start gap-3 p-4 rounded-xl border-2 border-dashed border-border sm:flex-wrap"
                                     >
-                                        <div>
-                                            <p className="font-semibold text-heading">{pending.email}</p>
-                                            <div className="flex gap-2 mt-1 flex-wrap">
+                                        <div className="min-w-0 max-w-full">
+                                            <p className="font-semibold text-heading wrap-break-word">{pending.email}</p>
+                                            <div className="flex justify-center sm:justify-start gap-2 mt-1 flex-wrap">
                                                 <Badge variant="warning" icon={Clock}>
                                                     ממתין להרשמה
                                                 </Badge>

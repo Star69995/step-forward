@@ -67,9 +67,9 @@ const TrashSection = ({
                             return (
                                 <li
                                     key={id}
-                                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-surface-muted flex-wrap"
+                                    className="flex flex-col items-center text-center sm:flex-row sm:justify-between sm:text-start gap-3 p-3 rounded-lg bg-surface-muted sm:flex-wrap"
                                 >
-                                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap min-w-0">
                                         <span className="text-sm text-body wrap-break-word">
                                             {renderLabel(item)}
                                         </span>
@@ -111,7 +111,7 @@ const TrashSection = ({
             <ConfirmDialog
                 open={!!pendingDelete}
                 title="מחיקה לצמיתות"
-                message="פעולה זו סופית ואינה הפיכה — הפריט יימחק לגמרי ולא ניתן יהיה לשחזר אותו."
+                message="פעולה זו סופית ואינה הפיכה - הפריט יימחק לגמרי ולא ניתן יהיה לשחזר אותו."
                 confirmLabel="מחיקה לצמיתות"
                 cancelLabel="ביטול"
                 loading={!!deletingId}

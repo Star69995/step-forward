@@ -111,10 +111,10 @@ export const labelForPath = (path) => {
 
         if (rest.startsWith("target") && parts.length >= 4) {
             const targetLabel = TARGET_FIELD_LABELS[parts[3]] || parts[3];
-            return `מטרה קצרת טווח #${goalNum} — יעד #${rest.replace("target", "")} — ${targetLabel}`;
+            return `מטרה קצרת טווח #${goalNum} - יעד #${rest.replace("target", "")} - ${targetLabel}`;
         }
 
-        return `מטרה קצרת טווח #${goalNum} — ${GOAL_FIELD_LABELS[rest] || rest}`;
+        return `מטרה קצרת טווח #${goalNum} - ${GOAL_FIELD_LABELS[rest] || rest}`;
     }
 
     return TOP_LEVEL_LABELS[path] || path;

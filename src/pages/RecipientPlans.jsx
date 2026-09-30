@@ -6,6 +6,7 @@ import { fetchShare } from "../services/useShares";
 import { isSyntheticEmail } from "../services/anonymousAccount";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
+import TitleRow from "../components/ui/TitleRow";
 import Spinner from "../components/ui/Spinner";
 import { ClipboardList, Clock, Eye, ShieldCheck, Inbox, ArrowLeft } from "lucide-react";
 
@@ -62,7 +63,7 @@ const RecipientPlans = () => {
                     <div className="bg-surface rounded-2xl shadow-xs p-12 text-center">
                         <Inbox size={40} className="mx-auto text-muted mb-3" aria-hidden="true" />
                         <p className="text-body mb-6">
-                            אין (או שאין יותר) גישה לתוכניות של המשתמש הזה — ייתכן שהשיתוף בוטל.
+                            אין (או שאין יותר) גישה לתוכניות של המשתמש הזה - ייתכן שהשיתוף בוטל.
                         </p>
                         <Button variant="outline" icon={ArrowLeft} onClick={() => navigate("/form")}>
                             חזרה
@@ -77,15 +78,11 @@ const RecipientPlans = () => {
         <div dir="rtl" className="min-h-screen py-8">
             <div className="max-w-4xl mx-auto px-4">
                 <div className="bg-surface/95 backdrop-blur-sm rounded-3xl shadow-lg mb-8 p-[var(--space-hero-pad)]">
-                    <div className="flex justify-between items-center gap-4 flex-wrap">
-                        <h2 className="flex items-center gap-2 text-2xl font-bold text-heading min-w-0 wrap-break-word">
-                            <ClipboardList size={24} className="shrink-0" aria-hidden="true" />
-                            התוכניות של {recipientLabel}
-                        </h2>
+                    <TitleRow icon={ClipboardList} title={`התוכניות של ${recipientLabel}`}>
                         <Badge variant={share.permission === "edit" ? "success" : "info"} icon={share.permission === "edit" ? ShieldCheck : Eye}>
                             {share.permission === "edit" ? "צפייה ועריכה" : "צפייה בלבד"}
                         </Badge>
-                    </div>
+                    </TitleRow>
                 </div>
 
                 {loading ? (

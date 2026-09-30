@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Footprints, FileText, User, LogOut, LogIn } from "lucide-react";
+import { Footprints, FileText, User, LogOut, LogIn, HeartHandshake } from "lucide-react";
 import { useAuth } from "../context/useAuth";
 import PlanSwitcher from "./PlanSwitcher";
 import ProviderSwitcher from "./ProviderSwitcher";
 import RoleBadge from "./RoleBadge";
 import ConfirmDialog from "./ui/ConfirmDialog";
+import Dropdown from "./ui/Dropdown";
 import { formatUserLabel } from "../services/userProfile";
 
 const Header = () => {
@@ -13,6 +14,14 @@ const Header = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [confirmingLogout, setConfirmingLogout] = useState(false);
+
+    const userLabel =
+        currentUser &&
+        formatUserLabel({
+            displayName: currentUser.displayName,
+            username: userProfile?.username,
+            email: currentUser.email,
+        });
 
     const isActive = (path) => location.pathname === path;
 
@@ -37,7 +46,7 @@ const Header = () => {
     if (!currentUser) {
         return (
             <nav className="sticky top-0 z-50 shadow-lg bg-headerMid bg-linear-to-r from-headerFrom to-headerTo" dir="rtl">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center sm:justify-between items-center gap-x-4 gap-y-2 flex-wrap">
                     {logo}
                     <button className={navButtonClass("/login")} onClick={() => navigate("/login")}>
                         <LogIn size={16} aria-hidden="true" />
@@ -53,26 +62,22 @@ const Header = () => {
             className="sticky top-0 z-50 shadow-lg bg-headerMid bg-linear-to-r from-headerFrom to-headerTo"
             dir="rtl"
         >
-            <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4 flex-wrap">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center sm:justify-between items-center gap-x-4 gap-y-2 flex-wrap">
                 {/* Logo - Right Side */}
-                <div className="flex items-center gap-2 order-2 lg:order-1">
+                <div className="flex items-center gap-2 order-1 sm:order-2 lg:order-1">
                     {logo}
 
                     <div className="hidden lg:flex items-center gap-2 border-r border-white/30 ps-4 ms-4">
                         <User size={14} className="text-white/90" aria-hidden="true" />
                         <small className="text-white/90 whitespace-nowrap">
-                            {formatUserLabel({
-                                displayName: currentUser.displayName,
-                                username: userProfile?.username,
-                                email: currentUser.email,
-                            })}
+                            {userLabel}
                         </small>
                         <RoleBadge role={role} variant="onDark" />
                     </div>
                 </div>
 
                 {/* Navigation Buttons - Left Side */}
-                <div className="flex gap-2 flex-wrap justify-end order-1 lg:order-2">
+                <div className="flex gap-2 flex-wrap justify-center sm:justify-end order-2 sm:order-1 lg:order-2">
                     <PlanSwitcher />
                     {role === "provider" && <ProviderSwitcher />}
 
@@ -83,20 +88,58 @@ const Header = () => {
                         </button>
                     )}
 
-                    {location.pathname !== "/profile" && (
-                        <button className={navButtonClass("/profile")} onClick={() => navigate("/profile")}>
-                            <User size={16} aria-hidden="true" />
-                            פרופיל
-                        </button>
-                    )}
-
-                    <button
-                        className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 bg-white/15 text-white border-2 border-white/40 hover:bg-danger/30 hover:border-danger"
-                        onClick={() => setConfirmingLogout(true)}
+                    <Dropdown
+                        icon={User}
+                        label="פרופיל"
+                        width={240}
+                        triggerClassName={navButtonClass("/profile")}
                     >
-                        <LogOut size={16} aria-hidden="true" />
-                        יציאה
-                    </button>
+                        {(close) => (
+                            <>
+                                <div className="px-4 py-3 border-b border-border flex flex-col items-start gap-1.5">
+                                    <span className="font-semibold text-heading text-sm truncate max-w-full">
+                                        {userLabel}
+                                    </span>
+                                    <RoleBadge role={role} />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        close();
+                                        navigate("/profile");
+                                    }}
+                                    className="w-full text-right px-4 py-3 text-sm font-semibold text-heading hover:bg-surface-muted border-b border-border flex items-center gap-2 transition"
+                                >
+                                    <User size={16} aria-hidden="true" />
+                                    הפרופיל שלי
+                                </button>
+                                {role === "recipient" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            close();
+                                            navigate("/providers");
+                                        }}
+                                        className="w-full text-right px-4 py-3 text-sm font-semibold text-heading hover:bg-surface-muted border-b border-border flex items-center gap-2 transition"
+                                    >
+                                        <HeartHandshake size={16} aria-hidden="true" />
+                                        נותני השירות שלי
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        close();
+                                        setConfirmingLogout(true);
+                                    }}
+                                    className="w-full text-right px-4 py-3 text-sm font-semibold text-danger hover:bg-surface-muted flex items-center gap-2 transition"
+                                >
+                                    <LogOut size={16} aria-hidden="true" />
+                                    יציאה מהחשבון
+                                </button>
+                            </>
+                        )}
+                    </Dropdown>
                 </div>
             </div>
 
