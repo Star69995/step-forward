@@ -78,6 +78,7 @@ npm run dev
 | `npm run deploy:preview` | בנייה ופריסה לערוץ preview זמני בשם `preview` ב-Firebase Hosting (להריץ עם שם ערוץ אחר: `npm run deploy:preview -- <שם-ערוץ>`) |
 | `npm run emulators` | הרצת אמולטורים מקומיים ל-Auth+Firestore (ראו סעיף הבא) |
 | `npm run dev:emulator` | הרצת סביבת הפיתוח מול האמולטורים המקומיים במקום פרויקט Firebase האמיתי |
+| `npm run dev:local` | הרצת האמולטורים וסביבת הפיתוח יחד בטרמינל אחד (`emulators` + `dev:emulator` דרך `concurrently`, אחרי `emulators:recover`) |
 | `npm run verify:rules` | הרצת בדיקה אוטומטית של `firestore.rules` מול האמולטורים (דורש שהאמולטורים כבר רצים) |
 | `npm run emulators:recover` | שחזור נתוני אמולטור שנתקעו בתיקייה זמנית `firebase-export-*` בגלל כשל `EPERM` בסגירה (ראו סעיף הבא) |
 
@@ -95,6 +96,15 @@ npm run emulators
 npm run dev:emulator
 ```
 
+או הכל יחד בטרמינל אחד:
+
+```bash
+npm run dev:local
+```
+
+- `dev:local` מריץ קודם את `emulators:recover` (לא עושה כלום אם אין מה לשחזר), ואז את שתי הפקודות במקביל עם פלט מסומן לכל אחת. עצירה ב-Ctrl+C עוצרת את שתיהן, והאמולטורים מייצאים את הנתונים כרגיל. Vite עולה רק אחרי שהאמולטורים של Auth ו-Firestore מקבלים חיבורים (`scripts/wait-for-emulators.mjs`, קורא את הפורטים מ-`firebase.json`), כדי שדף לא ייטען מול אמולטור שעוד לא עלה.
+
+- **בדיקה מהטלפון/טאבלט:** עם `npm run dev:emulator` אפשר לפתוח את כתובת ה-`Network` ש-Vite מדפיס (למשל `http://192.168.1.50:5173`) ממכשיר באותה רשת, כולל התחברות עם Google דרך האמולטור. שרת הפיתוח מעביר (proxy) את נקודות הקצה של האמולטורים (`/emulator`, `/identitytoolkit.googleapis.com`, `/securetoken.googleapis.com`, `/google.firestore.v1.Firestore`) לפורטים 9099/8080 (ראו `emulatorProxy` ב-`vite.config.js`), כך שהמכשיר צריך גישה רק לפורט של Vite - לא ל-9099/8080 עצמם. אם המכשיר לא מצליח לטעון את הדף בכלל, יש לוודא שחומת האש של Windows מתירה את הפורט של Vite ושהרשת מוגדרת כ"פרטית".
 - ממשק האמולטורים (יצירת/עריכת משתמשי בדיקה, צפייה בנתוני Firestore, אימות מייל ידני) זמין ב-`http://127.0.0.1:4000`.
 - נתוני האמולטור (Firestore+Auth) נשמרים בין הרצות בתיקייה `./.firebase-emulator-data` (לא ב-git, ראו `.gitignore`) — `npm run emulators` מייבא/מייצא ממנה.
 - **תקלה ידועה בווינדוס:** ל-`firebase-tools` יש באג פתוח וידוע ([#3092](https://github.com/firebase/firebase-tools/issues/3092)) שגורם לפעמים לכשל `EPERM: operation not permitted, rename ...` בסגירת האמולטור, לפני שהוא מספיק להחליף את `./.firebase-emulator-data` בייצוא העדכני — תקלה סביב וינדוס בלבד ב-`firebase-tools` עצמו, לא בהגדרות הפרויקט. במקרה כזה הנתונים לא אבודים: הם נשארים שלמים בתיקייה זמנית בשם `firebase-export-<מזהה>` בשורש הפרויקט. הרצת `npm run emulators:recover` (`scripts/recover-emulator-export.mjs`) מאתרת אותה ומעבירה את הנתונים בחזרה ל-`./.firebase-emulator-data` אוטומטית.

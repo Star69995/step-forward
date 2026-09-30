@@ -2,12 +2,29 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Firebase Local Emulator Suite ports - must match "emulators" in firebase.json.
+const AUTH_EMULATOR = 'http://127.0.0.1:9099'
+const FIRESTORE_EMULATOR = 'http://127.0.0.1:8080'
+
+// `npm run dev:emulator` only: route the emulators' endpoints through the dev
+// server itself, so a phone on the LAN needs to reach just this one port
+// (not 9099/8080 too) and the Google sign-in popup/iframe are same-origin
+// with the app. src/services/firebase.js points the SDK at the page's own
+// origin to match.
+const emulatorProxy = {
+  '/emulator': AUTH_EMULATOR,
+  '/identitytoolkit.googleapis.com': AUTH_EMULATOR,
+  '/securetoken.googleapis.com': AUTH_EMULATOR,
+  '/google.firestore.v1.Firestore': { target: FIRESTORE_EMULATOR, ws: true },
+}
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     // Bind to all network interfaces (not just localhost) so the dev
     // server is reachable from other devices on the same LAN.
     host: true,
+    proxy: mode === 'emulator' ? emulatorProxy : undefined,
   },
   resolve: {
     // html2pdf.js requires "html2canvas" internally; html2canvas itself can't
@@ -75,4 +92,4 @@ export default defineConfig({
       exclude: [],
     },
   },
-})
+}))

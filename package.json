@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:emulator": "vite --mode emulator",
+    "dev:local": "npm run emulators:recover && concurrently -n emulators,vite -c yellow,cyan \"npm run emulators\" \"node scripts/wait-for-emulators.mjs && npm run dev:emulator\"",
     "emulators": "firebase emulators:start --project demo-step-forward --import=./.firebase-emulator-data --export-on-exit=./.firebase-emulator-data",
     "verify:rules": "node scripts/verify-firestore-rules.mjs",
     "emulators:recover": "node scripts/recover-emulator-export.mjs",
@@ -40,6 +41,7 @@
     "@types/react-dom": "^19.2.3",
     "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.5",
     "eslint": "^10.7.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",

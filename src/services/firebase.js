@@ -26,10 +26,11 @@ export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
 // (see .env.example) rather than always-on so a normal `npm run dev` still
 // talks to the real project.
 if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === "true") {
-    // Use the hostname the page was loaded from (not a hardcoded
-    // 127.0.0.1) so this also works when the dev server is opened from
-    // another device on the LAN via the host machine's IP.
-    const emulatorHost = window.location.hostname;
-    connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true });
-    connectFirestoreEmulator(db, emulatorHost, 8080);
+    // Talk to the emulators through the page's own origin - the dev server
+    // proxies their endpoints (see `emulatorProxy` in vite.config.js) - so
+    // opening the dev server from a phone on the LAN via the host machine's
+    // IP needs no extra ports, and the Google sign-in popup is same-origin.
+    const { origin, hostname, port, protocol } = window.location;
+    connectAuthEmulator(auth, origin, { disableWarnings: true });
+    connectFirestoreEmulator(db, hostname, Number(port) || (protocol === "https:" ? 443 : 80));
 }
