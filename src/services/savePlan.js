@@ -16,7 +16,7 @@ export const VERSION_SESSION_GAP_MS = 60 * 60 * 1000;
 // version (which represents "what the form looked like", not bookkeeping).
 const META_FIELDS = ["createdAt", "updatedAt", "versionSessionId", "versionSessionAt"];
 
-const contentOnly = (planData) => {
+export const contentOnly = (planData) => {
     const content = { ...planData };
     META_FIELDS.forEach((key) => delete content[key]);
     return content;

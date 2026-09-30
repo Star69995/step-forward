@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { deleteDoc, doc } from "firebase/firestore";
 import { sendEmailVerification } from "firebase/auth";
 import { db } from "../services/firebase";
@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { usePlans, formatPlanLabel } from "../services/usePlans";
 import { softDeleteDoc, restoreDoc } from "../services/trash";
 import { formatUserLabel } from "../services/userProfile";
+import { downloadPlanFile, readPlanFile, importPlan, PlanFileError } from "../services/planTransfer";
 import {
     User,
     LogOut,
@@ -27,6 +28,8 @@ import {
     Moon,
     Monitor,
     ShieldQuestion,
+    FileJson,
+    FileUp,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -61,6 +64,8 @@ const Profile = () => {
     const [emailVerified, setEmailVerified] = useState(currentUser?.emailVerified ?? false);
     const [sendingVerification, setSendingVerification] = useState(false);
     const navigate = useNavigate();
+    const importInputRef = useRef(null);
+    const [importing, setImporting] = useState(false);
 
     // currentUser.emailVerified can be stale if verification happened in a
     // different tab/session — reload() refreshes the underlying Firebase
@@ -181,6 +186,32 @@ const Profile = () => {
     // cost a write.
     const handleNewPlan = () => {
         navigate("/form?planId=new");
+    };
+
+    // Imports always land as a brand-new plan (see planTransfer.js), then
+    // open it like any other plan — a fresh read, since the just-written
+    // doc's server timestamps only exist on the server copy.
+    const handleImportFile = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setImporting(true);
+        try {
+            const data = await readPlanFile(file);
+            const editor = {
+                uid: currentUser.uid,
+                name: formatUserLabel({ displayName: currentUser.displayName, username: userProfile?.username, email: currentUser.email }),
+                role,
+            };
+            const planId = await importPlan(currentUser.uid, data, editor, { isAnonymous });
+            toast.success("התוכנית יובאה בהצלחה");
+            navigate(`/form?planId=${planId}`);
+        } catch (error) {
+            console.error(error);
+            toast.error(error instanceof PlanFileError ? error.message : "שגיאה בייבוא התוכנית");
+        } finally {
+            setImporting(false);
+        }
     };
 
     // Plan data was already fetched for the list above — hand it to the
@@ -328,9 +359,28 @@ const Profile = () => {
                         headingClassName="text-2xl font-bold text-primary"
                         className="mb-6"
                     >
-                        <Button variant="success" icon={Plus} rounded="rounded-lg" onClick={handleNewPlan}>
-                            תוכנית חדשה
-                        </Button>
+                        <div className="flex flex-wrap justify-center gap-2">
+                            <Button
+                                variant="outline"
+                                icon={FileUp}
+                                rounded="rounded-lg"
+                                loading={importing}
+                                loadingText="מייבא..."
+                                onClick={() => importInputRef.current?.click()}
+                            >
+                                ייבוא מקובץ
+                            </Button>
+                            <Button variant="success" icon={Plus} rounded="rounded-lg" onClick={handleNewPlan}>
+                                תוכנית חדשה
+                            </Button>
+                        </div>
+                        <input
+                            ref={importInputRef}
+                            type="file"
+                            accept="application/json,.json"
+                            className="hidden"
+                            onChange={handleImportFile}
+                        />
                     </TitleRow>
 
                     {loading ? (
@@ -383,6 +433,18 @@ const Profile = () => {
                                                 onClick={() => exportPlan(plan)}
                                             >
                                                 ייצוא ל-PDF
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                rounded="rounded-lg"
+                                                icon={FileJson}
+                                                fullWidth
+                                                onClick={() =>
+                                                    downloadPlanFile(plan, formatPlanLabel(plan, plans).replace(/[^\d]+/g, "-"))
+                                                }
+                                            >
+                                                ייצוא לקובץ (לגיבוי או העברה)
                                             </Button>
                                         </div>
                                         <Button

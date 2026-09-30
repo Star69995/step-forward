@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -15,6 +15,19 @@ const PrivateRoute = ({ children }) => {
   return currentUser ? children : <Navigate to="/login" />;
 };
 
+// FormPage keeps its plan id in state, so moving between plans without
+// leaving /form (the header's PlanSwitcher, a linked previous plan) has to
+// remount it - keyed by the plan it shows. A new plan mints its own id and
+// swaps it into the URL (marked with state.mintedPlanId); that swap is the
+// same plan, so it keeps the "new" key instead of remounting mid-creation.
+const FormRoute = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const planId = params.get("planId");
+  const isFresh = !planId || planId === "new" || location.state?.mintedPlanId === planId;
+  return <FormPage key={`${params.get("ownerUid") || ""}:${isFresh ? "new" : planId}`} />;
+};
+
 const App = () => {
   return (
     <Router>
@@ -27,7 +40,7 @@ const App = () => {
           path="/form"
           element={
             <PrivateRoute>
-              <FormPage />
+              <FormRoute />
             </PrivateRoute>
           }
         />

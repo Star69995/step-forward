@@ -1,6 +1,6 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
-import { FileText, Target } from "lucide-react";
+import { FileText, Target, Footprints, AlertTriangle } from "lucide-react";
 import Goal from "./Goal";
 import InfoHint from "./ui/InfoHint";
 import CollapsibleSection from "./ui/CollapsibleSection";
@@ -15,6 +15,27 @@ const BADGE_COLORS = {
     success: "var(--color-success)",
     warning: "var(--color-warning)",
     danger: "var(--color-danger)",
+};
+
+// One accent-colored textarea of the goal card — shared by the goal's
+// description/actions/obstacles so the look is defined once here.
+const GoalTextArea = ({ name, icon: Icon, label, placeholder = "ניתן לכתוב כאן", rows = 2, accent }) => {
+    const { register } = useFormContext();
+    return (
+        <div className="mb-[var(--space-section-gap)]">
+            <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
+                <Icon size={16} aria-hidden="true" />
+                {label}
+            </label>
+            <textarea
+                {...register(name)}
+                rows={rows}
+                placeholder={placeholder}
+                className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-surface text-heading font-sans disabled:bg-surface-muted disabled:text-muted"
+                style={{ "--accent": accent, lineHeight: "1.6", resize: "vertical" }}
+            />
+        </div>
+    );
 };
 
 // viewMode gates two mutually-exclusive layers: while defining the plan
@@ -67,19 +88,26 @@ const GoalSection = ({
     const content = (
         <>
             <fieldset disabled={viewMode} className="border-0 min-w-0">
-                <div className="mb-[var(--space-section-gap)]">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
-                        <FileText size={16} aria-hidden="true" />
-                        תיאור המטרה
-                    </label>
-                    <textarea
-                        {...register(`${baseName}.description`)}
-                        rows={3}
-                        placeholder="יש לתאר את המטרה בפירוט"
-                        className="accent-field w-full px-[var(--space-field-full-x)] py-[var(--space-field-full-y)] rounded-lg bg-surface-muted text-heading font-sans disabled:bg-surface-muted disabled:text-muted"
-                        style={{ "--accent": accent, lineHeight: "1.6", resize: "vertical" }}
-                    />
-                </div>
+                <GoalTextArea
+                    name={`${baseName}.description`}
+                    icon={FileText}
+                    label="תיאור המטרה"
+                    placeholder="יש לתאר את המטרה בפירוט"
+                    rows={3}
+                    accent={accent}
+                />
+                <GoalTextArea
+                    name={`${baseName}.actions`}
+                    icon={Footprints}
+                    label="פעולות - מי/מה יעזור לי להשיג את המטרה"
+                    accent={accent}
+                />
+                <GoalTextArea
+                    name={`${baseName}.obstacles`}
+                    icon={AlertTriangle}
+                    label="אתגרים - מי/מה עלול להפריע בדרך"
+                    accent={accent}
+                />
             </fieldset>
 
             <div className="mb-[var(--space-section-gap)] pb-[var(--space-section-gap)] border-b border-border/70">

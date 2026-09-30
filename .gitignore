@@ -30,3 +30,6 @@ firebase-export-*/
 *.njsproj
 *.sln
 *.sw?
+
+# Personal plan files (scans, exported/imported plan JSON) - never commit
+private/

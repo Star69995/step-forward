@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, useWatch, FormProvider } from "react-hook-form";
 import { useAuth } from "../context/useAuth";
 import FormSection from "../components/FormSection";
 import PDFButton from "../components/PDFButton";
@@ -46,7 +46,19 @@ import {
     MessageSquare,
     HeartHandshake,
     AlertCircle,
+    UserCog,
+    History,
+    CalendarClock,
+    ClipboardCheck,
+    Gauge,
+    NotebookPen,
 } from "lucide-react";
+import FormChoice from "../components/FormChoice";
+import FunctionalAssessment from "../components/FunctionalAssessment";
+import { NEXT_PLAN_OPTIONS, REVIEW_ROWS, REVIEW_PERSPECTIVES } from "../services/planFields";
+import PreviousPlanPicker from "../components/PreviousPlanPicker";
+import LinkedPlanSummary from "../components/LinkedPlanSummary";
+import { useLinkedPlan } from "../services/useLinkedPlan";
 
 const FormPage = () => {
     const { currentUser, userProfile, role } = useAuth();
@@ -199,6 +211,19 @@ const FormPage = () => {
         pdfNameResolveRef.current = null;
     };
 
+    // The earlier plan this one links to (see PreviousPlanPicker.jsx) - read
+    // once here and shared by the picker and the previous-plan summary.
+    const previousPlanId = useWatch({ control: methods.control, name: "previousPlanId" });
+    const linkedPlan = useLinkedPlan(ownerUid, previousPlanId);
+    // Where the linked plan opens - same owner as this plan, so a provider's
+    // owner context carries over, and its already-read data skips a re-read.
+    // A { to, state } pair (not a click handler) so the picker can render a
+    // real link, which the view-mode `<fieldset disabled>` doesn't disable.
+    const linkedPlanRoute = (plan) => ({
+        to: `/form?planId=${plan.id}${isOwner ? "" : `&ownerUid=${ownerUid}`}`,
+        state: { planData: plan, ownerName, ownerIsAnonymous },
+    });
+
     const handleReverted = (newValues) => {
         initialValuesRef.current = JSON.stringify(newValues);
         setSaveStatus("saved");
@@ -218,9 +243,11 @@ const FormPage = () => {
 
     // A freshly-created plan gets its own URL right away so a page refresh
     // keeps pointing at the same document instead of minting another id.
+    // mintedPlanId tells App.jsx's FormRoute this is still the same plan, so
+    // the URL swap doesn't remount the page.
     useEffect(() => {
         if (isNewPlan) {
-            navigate(`/form?planId=${planId}`, { replace: true });
+            navigate(`/form?planId=${planId}`, { replace: true, state: { mintedPlanId: planId } });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -453,17 +480,89 @@ const FormPage = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-heading mb-2">
-                                        <Users size={16} aria-hidden="true" />
-                                        שותפים
-                                    </label>
-                                    <FormSection name="partners" rows={1} showLabel={false} placeholder="ניתן לכתוב כאן" />
+                                    <FormSection name="partners" rows={1} icon={Users} label="שותפים" placeholder="ניתן לכתוב כאן" />
+                                </div>
+                                <div>
+                                    <FormSection name="socialWorker" rows={1} icon={UserCog} label="שם העו״ס" placeholder="ניתן לכתוב כאן" />
+                                </div>
+                                <div>
+                                    <FormSection name="counselor" rows={1} icon={UserCog} label="שם המדריך/ה" placeholder="ניתן לכתוב כאן" />
+                                </div>
+                                <div>
+                                    <TextField
+                                        as="input"
+                                        type="date"
+                                        dense
+                                        icon={History}
+                                        label="התוכנית הקודמת"
+                                        {...methods.register("previousPlanDate")}
+                                    />
+                                    <PreviousPlanPicker
+                                        ownerUid={ownerUid}
+                                        currentPlanId={planId}
+                                        linked={linkedPlan}
+                                        editable={!effectiveViewMode}
+                                        routeTo={linkedPlanRoute}
+                                    />
+                                </div>
+                                <div>
+                                    <span className="flex items-center gap-2 text-sm font-semibold text-heading mb-2 tracking-wide">
+                                        <CalendarClock size={16} aria-hidden="true" />
+                                        התוכנית הבאה בעוד
+                                    </span>
+                                    <FormChoice
+                                        name="nextPlanIn"
+                                        options={NEXT_PLAN_OPTIONS}
+                                        ariaLabel="התוכנית הבאה בעוד"
+                                        stretch
+                                        className="w-full"
+                                    />
                                 </div>
                             </div>
                         </fieldset>
                     </CollapsibleSection>
 
-                    {/* PAGE 1: PREPARATION */}
+                    {/* PREVIOUS PLAN REVIEW */}
+                    <CollapsibleSection title="סיכום התוכנית הקודמת" icon={ClipboardCheck} accent="info" defaultOpen={!isMobile}>
+                        <LinkedPlanSummary linked={linkedPlan} editable={!effectiveViewMode} routeTo={linkedPlanRoute} />
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
+                            <div className="pdf-avoid-break mb-6">
+                                <div className="flex items-center mb-2 gap-2">
+                                    <label className="font-semibold text-sm text-heading">היעדים שהוצבו בתוכנית הקודמת</label>
+                                    <InfoHint text="יעד אחד בכל שורה - כדי שיהיה קל לבחון מה מהם התקדם." />
+                                </div>
+                                <FormSection name="previousGoals" showLabel={false} rows={3} />
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                {REVIEW_ROWS.map((row) => (
+                                    <div key={row.key} className="pdf-avoid-break rounded-xl border border-border p-4">
+                                        <h4 className="font-bold text-heading mb-3">{row.label}</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {REVIEW_PERSPECTIVES.map((perspective) => (
+                                                <FormSection
+                                                    key={perspective.key}
+                                                    name={`review.${row.key}.${perspective.key}`}
+                                                    label={perspective.label}
+                                                    icon={perspective.key === "self" ? User : Users}
+                                                    rows={3}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </fieldset>
+                    </CollapsibleSection>
+
+                    {/* FUNCTIONAL ASSESSMENT */}
+                    <CollapsibleSection title="הערכה תפקודית" icon={Gauge} accent="primary" defaultOpen={!isMobile}>
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
+                            <FunctionalAssessment />
+                        </fieldset>
+                    </CollapsibleSection>
+
+                    {/* PREPARATION */}
                     <CollapsibleSection title="הכנה לתהליך" icon={Rocket} accent="success" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -558,7 +657,7 @@ const FormPage = () => {
                         />
                     </CollapsibleSection>
 
-                    {/* PAGE 2: GOALS */}
+                    {/* GOALS */}
                     <CollapsibleSection title="הגדרת המטרות" icon={Target} accent="warning" defaultOpen={!isMobile}>
                         <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
                             <div className="pdf-avoid-break mb-6 p-4 bg-info/10 rounded-lg border-l-4 border-info">
@@ -573,8 +672,8 @@ const FormPage = () => {
                             <div className="pdf-avoid-break mb-6 p-4 bg-info/10 rounded-lg border-l-4 border-info">
                                 <strong className="flex items-center gap-2 text-info mb-2">
                                     <Telescope size={18} aria-hidden="true" />
-                                    מטרת-על (תמונת עתיד)
-                                    <InfoHint text="כיצד ייראו החיים בעוד כמה שנים אם התהליך יצליח? מה ישתנה?" />
+                                    מטרת-על (תמונת עתיד - החלום)
+                                    <InfoHint text="כיצד ייראו החיים בעוד כמה שנים? מהו החלום - בלי קשר למצב וליכולות הנוכחיים." />
                                 </strong>
                                 <FormSection name="futureVision" label="תיאור התמונה:" rows={3} />
                             </div>
@@ -757,6 +856,17 @@ const FormPage = () => {
                                 </div>
                             </>
                         )}
+                    </CollapsibleSection>
+
+                    {/* NOTES ON THE PLAN — part of the plan's own content (and
+                     its PDF), unlike the progress-comment log below. */}
+                    <CollapsibleSection title="הערות לתוכנית" icon={NotebookPen} accent="success" defaultOpen={!isMobile}>
+                        <fieldset disabled={effectiveViewMode} className="border-0 min-w-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormSection name="recipientNotes" label="ההערות שלי לתוכנית" icon={User} rows={3} />
+                                <FormSection name="staffNotes" label="הערות הגורם הטיפולי" icon={Users} rows={3} />
+                            </div>
+                        </fieldset>
                     </CollapsibleSection>
 
                     {/* PLAN-LEVEL COMMENTS */}
