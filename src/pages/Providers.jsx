@@ -2,7 +2,18 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/useAuth";
 import { usePlans, formatPlanLabel } from "../services/usePlans";
-import { useShares, addOrUpdateShare, removeShare, restoreShare, deleteShareForever } from "../services/useShares";
+import {
+    useShares,
+    addOrUpdateShare,
+    removeShare,
+    restoreShare,
+    deleteShareForever,
+    usePendingShares,
+    addOrUpdatePendingShare,
+    removePendingShare,
+    restorePendingShare,
+    deletePendingShareForever,
+} from "../services/useShares";
 import { resolveEmailToUser } from "../services/resolveEmailToUser";
 import { resolveUsernameToUser } from "../services/resolveUsernameToUser";
 import { formatUserLabel } from "../services/userProfile";
@@ -23,11 +34,17 @@ import {
     ListChecks,
     Inbox,
     HeartHandshake,
+    Clock,
     X,
     Check,
 } from "lucide-react";
 
 const emptyForm = { identifier: "", scope: "all", permission: "view", planIds: [] };
+
+// editingId doubles as a discriminator: "new", an existing share's
+// providerUid, or a pending invite's id prefixed this way — Firestore uids
+// never contain a colon, so there's no ambiguity.
+const PENDING_PREFIX = "pending:";
 
 // A single-select pair of "chip" buttons — used for both the scope choice
 // (all/selected) and the permission choice (view/edit) so the toggle look
@@ -49,11 +66,17 @@ const ToggleOption = ({ selected, icon: Icon, label, onClick }) => (
 const Providers = () => {
     const { currentUser, userProfile, role } = useAuth();
     const { shares, trashedShares, loading, refetch } = useShares(currentUser?.uid);
+    const {
+        pendingShares,
+        trashedPendingShares,
+        loading: loadingPending,
+        refetch: refetchPending,
+    } = usePendingShares(currentUser?.uid);
     const { plans } = usePlans(currentUser?.uid);
     const [form, setForm] = useState(emptyForm);
     const [submitting, setSubmitting] = useState(false);
-    const [editingId, setEditingId] = useState(null); // providerUid being edited, or "new"
-    const [pendingRemove, setPendingRemove] = useState(null);
+    const [editingId, setEditingId] = useState(null); // providerUid, "pending:<email>", or "new"
+    const [pendingRemove, setPendingRemove] = useState(null); // { kind: "share" | "pending", id, label }
     const [removing, setRemoving] = useState(false);
 
     const openNewForm = () => {
@@ -69,6 +92,16 @@ const Providers = () => {
             planIds: share.planIds || [],
         });
         setEditingId(share.id);
+    };
+
+    const openEditPendingForm = (pending) => {
+        setForm({
+            identifier: pending.email,
+            scope: pending.scope,
+            permission: pending.permission,
+            planIds: pending.planIds || [],
+        });
+        setEditingId(`${PENDING_PREFIX}${pending.id}`);
     };
 
     const closeForm = () => setEditingId(null);
@@ -93,6 +126,31 @@ const Providers = () => {
 
         setSubmitting(true);
         try {
+            const recipientFields = {
+                recipientEmail: currentUser.email,
+                recipientDisplayName: currentUser.displayName,
+                recipientLabel: formatUserLabel({
+                    displayName: userProfile?.displayName,
+                    username: userProfile?.username,
+                    email: currentUser.email,
+                }),
+                recipientIsAnonymous: !!userProfile?.isAnonymous,
+            };
+
+            const isEditingPending = typeof editingId === "string" && editingId.startsWith(PENDING_PREFIX);
+            if (isEditingPending) {
+                await addOrUpdatePendingShare(currentUser.uid, editingId.slice(PENDING_PREFIX.length), {
+                    scope: form.scope,
+                    planIds: form.planIds,
+                    permission: form.permission,
+                    ...recipientFields,
+                });
+                toast.success("הפרטים נשמרו בהצלחה");
+                closeForm();
+                refetchPending();
+                return;
+            }
+
             let providerUid = editingId !== "new" ? editingId : null;
             let resolved = null;
 
@@ -102,11 +160,26 @@ const Providers = () => {
                     ? await resolveEmailToUser(form.identifier)
                     : await resolveUsernameToUser(form.identifier);
                 if (!resolved) {
-                    toast.error(
-                        isEmailIdentifier
-                            ? "לא נמצא משתמש רשום עם כתובת מייל זו, או שהמייל שלו טרם אומת"
-                            : "לא נמצא משתמש רשום עם שם משתמש זה"
-                    );
+                    if (isEmailIdentifier) {
+                        // Not registered yet — save as a pending invite
+                        // instead of failing outright; it activates itself
+                        // automatically once someone verifies this exact
+                        // email as a provider account (see
+                        // claimPendingSharesForEmail in useShares.js).
+                        await addOrUpdatePendingShare(currentUser.uid, form.identifier, {
+                            scope: form.scope,
+                            planIds: form.planIds,
+                            permission: form.permission,
+                            ...recipientFields,
+                        });
+                        toast.success(
+                            "הכתובת עדיין לא רשומה — השיתוף יופעל אוטומטית ברגע שיירשם עמה חשבון נותן שירות"
+                        );
+                        closeForm();
+                        refetchPending();
+                        return;
+                    }
+                    toast.error("לא נמצא משתמש רשום עם שם משתמש זה");
                     return;
                 }
                 if (resolved.role !== "provider") {
@@ -134,14 +207,7 @@ const Providers = () => {
                 scope: form.scope,
                 planIds: form.planIds,
                 permission: form.permission,
-                recipientEmail: currentUser.email,
-                recipientDisplayName: currentUser.displayName,
-                recipientLabel: formatUserLabel({
-                    displayName: userProfile?.displayName,
-                    username: userProfile?.username,
-                    email: currentUser.email,
-                }),
-                recipientIsAnonymous: !!userProfile?.isAnonymous,
+                ...recipientFields,
             });
             toast.success("הפרטים נשמרו בהצלחה");
             closeForm();
@@ -158,12 +224,18 @@ const Providers = () => {
         if (!pendingRemove) return;
         setRemoving(true);
         try {
-            await removeShare(currentUser.uid, pendingRemove.id);
-            toast.success("השיתוף הועבר לפח המחזור");
-            refetch();
+            if (pendingRemove.kind === "pending") {
+                await removePendingShare(currentUser.uid, pendingRemove.id);
+                toast.success("ההזמנה הועברה לפח המחזור");
+                refetchPending();
+            } else {
+                await removeShare(currentUser.uid, pendingRemove.id);
+                toast.success("השיתוף הועבר לפח המחזור");
+                refetch();
+            }
         } catch (error) {
             console.error(error);
-            toast.error("שגיאה בביטול השיתוף");
+            toast.error(pendingRemove.kind === "pending" ? "שגיאה בביטול ההזמנה" : "שגיאה בביטול השיתוף");
         } finally {
             setRemoving(false);
             setPendingRemove(null);
@@ -182,6 +254,18 @@ const Providers = () => {
         refetch();
     };
 
+    const handleRestorePendingShare = async (pending) => {
+        await restorePendingShare(currentUser.uid, pending.id);
+        toast.success("ההזמנה שוחזרה בהצלחה");
+        refetchPending();
+    };
+
+    const handleDeletePendingShareForever = async (pending) => {
+        await deletePendingShareForever(currentUser.uid, pending.id);
+        toast.success("ההזמנה נמחקה לצמיתות");
+        refetchPending();
+    };
+
     const renderForm = () => (
         <form onSubmit={handleSubmit} className="bg-surface-muted rounded-xl p-5 mb-4 border-2 border-primary/20">
             {editingId === "new" && (
@@ -194,6 +278,7 @@ const Providers = () => {
                     value={form.identifier}
                     onChange={(e) => setForm((f) => ({ ...f, identifier: e.target.value }))}
                     disabled={submitting}
+                    hint="אם מזינים אימייל שעדיין אין לו חשבון, השיתוף יישמר כהזמנה ויופעל אוטומטית ברגע שיירשם עם כתובת זו כנותן/ת שירות"
                 />
             )}
 
@@ -343,9 +428,63 @@ const Providers = () => {
                                                 variant="danger"
                                                 size="sm"
                                                 icon={Trash2}
-                                                onClick={() => setPendingRemove(share)}
+                                                onClick={() => setPendingRemove({ ...share, kind: "share" })}
                                             >
                                                 ביטול שיתוף
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+
+                    {!loadingPending && pendingShares.length > 0 && (
+                        <div className="flex flex-col gap-3 mt-4">
+                            <span className="block text-sm font-semibold text-heading">הזמנות ממתינות להרשמה</span>
+                            {pendingShares.map((pending) =>
+                                editingId === `${PENDING_PREFIX}${pending.id}` ? (
+                                    <div key={pending.id}>{renderForm()}</div>
+                                ) : (
+                                    <div
+                                        key={pending.id}
+                                        className="flex items-center justify-between gap-3 p-4 rounded-xl border-2 border-dashed border-border flex-wrap"
+                                    >
+                                        <div>
+                                            <p className="font-semibold text-heading">{pending.email}</p>
+                                            <div className="flex gap-2 mt-1 flex-wrap">
+                                                <Badge variant="warning" icon={Clock}>
+                                                    ממתין להרשמה
+                                                </Badge>
+                                                <Badge variant="gray" icon={pending.scope === "all" ? Globe : ListChecks}>
+                                                    {pending.scope === "all"
+                                                        ? "כל התוכניות"
+                                                        : `${pending.planIds?.length || 0} תוכניות נבחרות`}
+                                                </Badge>
+                                                <Badge
+                                                    variant={pending.permission === "edit" ? "success" : "info"}
+                                                    icon={pending.permission === "edit" ? ShieldCheck : Eye}
+                                                >
+                                                    {pending.permission === "edit" ? "צפייה ועריכה" : "צפייה בלבד"}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 flex-wrap">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                icon={Pencil}
+                                                onClick={() => openEditPendingForm(pending)}
+                                            >
+                                                עריכה
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                icon={Trash2}
+                                                onClick={() => setPendingRemove({ ...pending, kind: "pending" })}
+                                            >
+                                                ביטול הזמנה
                                             </Button>
                                         </div>
                                     </div>
@@ -361,16 +500,30 @@ const Providers = () => {
                         onDeleteForever={handleDeleteShareForever}
                         className="mt-6"
                     />
+
+                    <TrashSection
+                        items={trashedPendingShares}
+                        renderLabel={(pending) => pending.email}
+                        onRestore={handleRestorePendingShare}
+                        onDeleteForever={handleDeletePendingShareForever}
+                        title="הזמנות בפח מחזור"
+                        emptyMessage="אין הזמנות בפח"
+                        className="mt-6"
+                    />
                 </div>
             </div>
 
             <ConfirmDialog
                 open={!!pendingRemove}
-                title="ביטול שיתוף"
-                message={`האם לבטל את השיתוף עם "${
-                    pendingRemove ? pendingRemove.providerLabel || formatUserLabel({ email: pendingRemove.providerEmail }) : ""
-                }"? הגישה שלו לתוכניות תבוטל באופן מיידי, והשיתוף יועבר לפח המחזור למשך 30 יום.`}
-                confirmLabel="ביטול שיתוף"
+                title={pendingRemove?.kind === "pending" ? "ביטול הזמנה" : "ביטול שיתוף"}
+                message={
+                    pendingRemove?.kind === "pending"
+                        ? `האם לבטל את ההזמנה עבור "${pendingRemove.email}"? ההזמנה תועבר לפח המחזור למשך 30 יום, ולא תופעל אוטומטית אם הכתובת תירשם בינתיים.`
+                        : `האם לבטל את השיתוף עם "${
+                              pendingRemove ? pendingRemove.providerLabel || formatUserLabel({ email: pendingRemove.providerEmail }) : ""
+                          }"? הגישה שלו לתוכניות תבוטל באופן מיידי, והשיתוף יועבר לפח המחזור למשך 30 יום.`
+                }
+                confirmLabel={pendingRemove?.kind === "pending" ? "ביטול הזמנה" : "ביטול שיתוף"}
                 cancelLabel="חזרה"
                 loading={removing}
                 onConfirm={handleRemove}
