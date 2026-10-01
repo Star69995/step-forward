@@ -101,6 +101,13 @@
   }
 }
 
+/* View mode locks plan fields via <fieldset disabled>; an empty locked field
+   shouldn't show its "write here" placeholder as if it were content. Unlayered
+   so it beats the `placeholder:` utilities on the fields themselves. */
+fieldset:disabled :is(input, textarea)::placeholder {
+  color: transparent;
+}
+
 @utility fade-in {
   animation: fadeIn 0.3s ease-out;
 }
